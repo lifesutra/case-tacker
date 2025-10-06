@@ -36,7 +36,7 @@ jobs:
       - name: Build
         run: |
           cd wCaseTracker
-          npm run build -- --configuration production --base-href=/wCaseTracker/
+          npm run build -- --configuration production --base-href=/case-tacker/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
