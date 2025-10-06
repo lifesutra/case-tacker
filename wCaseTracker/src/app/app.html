@@ -1,0 +1,14 @@
+<div class="app-container">
+  <p-menubar [model]="menuItems">
+    <ng-template pTemplate="start">
+      <div class="app-logo">
+        <i class="pi pi-shield" style="font-size: 1.5rem; margin-right: 0.5rem;"></i>
+        <span class="app-title">{{ title() }}</span>
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

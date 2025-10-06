@@ -1,0 +1,111 @@
+<div class="case-form-container">
+  <p-card [header]="isEditMode ? 'Edit Case' : 'New Case'">
+    <form [formGroup]="caseForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="caseNumber">Case Number *</label>
+          <input pInputText id="caseNumber" formControlName="caseNumber" placeholder="Enter case number" />
+        </div>
+
+        <div class="form-field">
+          <label for="title">Title *</label>
+          <input pInputText id="title" formControlName="title" placeholder="Enter case title" />
+        </div>
+
+        <div class="form-field full-width">
+          <label for="description">Description *</label>
+          <textarea
+            pTextarea
+            id="description"
+            formControlName="description"
+            rows="3"
+            placeholder="Enter case description"
+          ></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="status">Status *</label>
+          <p-select
+            id="status"
+            formControlName="status"
+            [options]="statusOptions"
+            placeholder="Select status"
+          ></p-select>
+        </div>
+
+        <div class="form-field">
+          <label for="priority">Priority *</label>
+          <p-select
+            id="priority"
+            formControlName="priority"
+            [options]="priorityOptions"
+            placeholder="Select priority"
+          ></p-select>
+        </div>
+
+        <div class="form-field">
+          <label for="category">Category *</label>
+          <input pInputText id="category" formControlName="category" placeholder="e.g. Theft, Assault" />
+        </div>
+
+        <div class="form-field">
+          <label for="location">Location *</label>
+          <input pInputText id="location" formControlName="location" placeholder="Enter location" />
+        </div>
+
+        <div class="form-field">
+          <label for="complainant">Complainant</label>
+          <input pInputText id="complainant" formControlName="complainant" placeholder="Enter complainant name" />
+        </div>
+
+        <div class="form-field">
+          <label for="accused">Accused</label>
+          <input pInputText id="accused" formControlName="accused" placeholder="Enter accused name" />
+        </div>
+
+        <div class="form-field">
+          <label for="filingDate">Filing Date *</label>
+          <p-datepicker
+            id="filingDate"
+            formControlName="filingDate"
+            [showIcon]="true"
+            dateFormat="mm/dd/yy"
+          ></p-datepicker>
+        </div>
+
+        <div class="form-field">
+          <label for="nextHearingDate">Next Hearing Date</label>
+          <p-datepicker
+            id="nextHearingDate"
+            formControlName="nextHearingDate"
+            [showIcon]="true"
+            dateFormat="mm/dd/yy"
+          ></p-datepicker>
+        </div>
+
+        <div class="form-field full-width">
+          <label for="notes">Notes</label>
+          <textarea
+            pTextarea
+            id="notes"
+            formControlName="notes"
+            rows="3"
+            placeholder="Additional notes"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="onCancel()"></p-button>
+        <p-button
+          [label]="isEditMode ? 'Update' : 'Create'"
+          type="submit"
+          [loading]="loading"
+          [disabled]="caseForm.invalid"
+        ></p-button>
+      </div>
+    </form>
+  </p-card>
+</div>
+
+<p-toast></p-toast>

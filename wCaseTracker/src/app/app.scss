@@ -1,0 +1,23 @@
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+
+  .app-title {
+    font-weight: 700;
+  }
+}
+
+.main-content {
+  flex: 1;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 60px);
+}

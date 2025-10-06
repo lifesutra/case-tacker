@@ -1,0 +1,149 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Case Tracker Dashboard</h1>
+    <p>Welcome to your personal case management system</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <p-card>
+      <div class="stat-card">
+        <i class="pi pi-briefcase stat-icon"></i>
+        <div class="stat-content">
+          <div class="stat-value">{{ caseStats.total || 0 }}</div>
+          <div class="stat-label">Total Cases</div>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card>
+      <div class="stat-card">
+        <i class="pi pi-folder-open stat-icon"></i>
+        <div class="stat-content">
+          <div class="stat-value">{{ caseStats.open || 0 }}</div>
+          <div class="stat-label">Open Cases</div>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card>
+      <div class="stat-card">
+        <i class="pi pi-bell stat-icon"></i>
+        <div class="stat-content">
+          <div class="stat-value">{{ reminderStats.today || 0 }}</div>
+          <div class="stat-label">Reminders Today</div>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card>
+      <div class="stat-card">
+        <i class="pi pi-exclamation-triangle stat-icon urgent"></i>
+        <div class="stat-content">
+          <div class="stat-value">{{ reminderStats.overdue || 0 }}</div>
+          <div class="stat-label">Overdue</div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <p-card header="Quick Actions" class="section-card">
+    <div class="quick-actions">
+      <p-button label="New Case" icon="pi pi-plus" routerLink="/cases/new" [outlined]="true"></p-button>
+      <p-button label="New Reminder" icon="pi pi-clock" routerLink="/reminders/new" [outlined]="true"></p-button>
+      <p-button label="View All Cases" icon="pi pi-list" routerLink="/cases" severity="secondary" [outlined]="true"></p-button>
+      <p-button label="View Reminders" icon="pi pi-calendar" routerLink="/reminders" severity="secondary" [outlined]="true"></p-button>
+    </div>
+  </p-card>
+
+  <!-- Upcoming Hearings -->
+  <p-card header="Upcoming Hearings (Next 7 Days)" class="section-card">
+    <p-table [value]="upcomingHearings" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Case Number</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Hearing Date</th>
+          <th>Priority</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-case>
+        <tr>
+          <td>{{ case.caseNumber }}</td>
+          <td>{{ case.title }}</td>
+          <td>
+            <p-tag [value]="case.status" [severity]="getCaseSeverity(case.status)"></p-tag>
+          </td>
+          <td>{{ case.nextHearingDate | date: 'short' }}</td>
+          <td>
+            <p-tag [value]="case.priority"></p-tag>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="empty-message">
+            <i class="pi pi-info-circle"></i> No upcoming hearings
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Overdue Reminders -->
+  <p-card header="Overdue Reminders" class="section-card" *ngIf="overdueReminders.length > 0">
+    <p-table [value]="overdueReminders" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Due Date</th>
+          <th>Priority</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-reminder>
+        <tr>
+          <td>{{ reminder.title }}</td>
+          <td>{{ reminder.type }}</td>
+          <td>{{ reminder.dueDate | date: 'short' }}</td>
+          <td>
+            <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Upcoming Reminders -->
+  <p-card header="Upcoming Reminders (Next 7 Days)" class="section-card">
+    <p-table [value]="upcomingReminders" [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Due Date</th>
+          <th>Priority</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-reminder>
+        <tr>
+          <td>{{ reminder.title }}</td>
+          <td>{{ reminder.type }}</td>
+          <td>{{ reminder.dueDate | date: 'short' }}</td>
+          <td>
+            <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="empty-message">
+            <i class="pi pi-info-circle"></i> No upcoming reminders
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

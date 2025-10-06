@@ -1,0 +1,76 @@
+.case-list-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+
+  .p-input-icon-left {
+    flex: 1;
+    min-width: 250px;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  p-dropdown {
+    min-width: 200px;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 2rem;
+  color: #999;
+  font-style: italic;
+
+  i {
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+
+    p-button {
+      width: 100%;
+    }
+  }
+
+  .filters {
+    flex-direction: column;
+
+    .p-input-icon-left,
+    p-dropdown {
+      width: 100%;
+    }
+  }
+}

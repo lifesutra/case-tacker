@@ -1,0 +1,116 @@
+<div class="case-list-container">
+  <div class="header">
+    <h1>Cases</h1>
+    <p-button label="New Case" icon="pi pi-plus" routerLink="/cases/new"></p-button>
+  </div>
+
+  <div class="filters">
+    <span class="p-input-icon-left">
+      <i class="pi pi-search"></i>
+      <input
+        pInputText
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        placeholder="Search cases..."
+      />
+    </span>
+
+    <p-select
+      [options]="statusOptions"
+      [(ngModel)]="selectedStatus"
+      (onChange)="onStatusChange()"
+      placeholder="Filter by Status"
+      [showClear]="true"
+    ></p-select>
+
+    <p-select
+      [options]="priorityOptions"
+      [(ngModel)]="selectedPriority"
+      (onChange)="onPriorityChange()"
+      placeholder="Filter by Priority"
+      [showClear]="true"
+    ></p-select>
+  </div>
+
+  <p-table
+    [value]="filteredCases"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[5, 10, 20, 50]"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    styleClass="p-datatable-striped"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="caseNumber">
+          Case Number <p-sortIcon field="caseNumber"></p-sortIcon>
+        </th>
+        <th pSortableColumn="title">
+          Title <p-sortIcon field="title"></p-sortIcon>
+        </th>
+        <th pSortableColumn="status">
+          Status <p-sortIcon field="status"></p-sortIcon>
+        </th>
+        <th pSortableColumn="priority">
+          Priority <p-sortIcon field="priority"></p-sortIcon>
+        </th>
+        <th pSortableColumn="filingDate">
+          Filing Date <p-sortIcon field="filingDate"></p-sortIcon>
+        </th>
+        <th>Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-case>
+      <tr>
+        <td>{{ case.caseNumber }}</td>
+        <td>{{ case.title }}</td>
+        <td>
+          <p-tag [value]="case.status" [severity]="getCaseSeverity(case.status)"></p-tag>
+        </td>
+        <td>
+          <p-tag [value]="case.priority" [severity]="getPrioritySeverity(case.priority)"></p-tag>
+        </td>
+        <td>{{ case.filingDate | date: 'mediumDate' }}</td>
+        <td>
+          <div class="action-buttons">
+            <p-button
+              icon="pi pi-eye"
+              [rounded]="true"
+              [text]="true"
+              severity="info"
+              (onClick)="viewCase(case)"
+              pTooltip="View"
+            ></p-button>
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              (onClick)="editCase(case)"
+              pTooltip="Edit"
+            ></p-button>
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (onClick)="deleteCase(case)"
+              pTooltip="Delete"
+            ></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="empty-message">
+          <i class="pi pi-info-circle"></i> No cases found
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>
