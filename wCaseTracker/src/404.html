@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WCaseTracker</title>
+  <script>
+    // SPA 404 fallback - redirect to index.html while preserving the path
+    // This script stores the current path in sessionStorage and redirects to the base URL
+    // The Angular app will then read from sessionStorage and navigate to the correct route
+    sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
+    location.replace(location.origin + location.pathname.split('/').slice(0, -1).join('/') + '/');
+  </script>
+</head>
+<body>
+  <!-- This page is used for GitHub Pages SPA fallback -->
+</body>
+</html>
