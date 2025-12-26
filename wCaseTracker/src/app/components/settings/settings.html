@@ -1,0 +1,124 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <h1>सेटिंग्ज</h1>
+    <p>स्मरणपत्र आणि WhatsApp सेटिंग्ज कॉन्फिगर करा</p>
+  </div>
+
+  <div class="settings-content">
+    <p-card class="settings-card">
+      <ng-template pTemplate="header">
+        <div class="card-header">
+          <h2>स्मरणपत्र कॉन्फिगरेशन</h2>
+        </div>
+      </ng-template>
+
+      <div class="form-section">
+        <div class="form-group">
+          <label for="reminder45">45 दिवस केस स्मरणपत्र (दिवस, स्वल्पविरामाने विभक्त)</label>
+          <input
+            pInputText
+            id="reminder45"
+            [(ngModel)]="reminder45Days"
+            placeholder="35,40,45"
+            class="full-width"
+          />
+          <small>उदाहरण: 35,40,45 (केस तारीख नंतर 35, 40, आणि 45 दिवसांना स्मरणपत्र)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="reminder60">60 दिवस केस स्मरणपत्र (दिवस, स्वल्पविरामाने विभक्त)</label>
+          <input
+            pInputText
+            id="reminder60"
+            [(ngModel)]="reminder60Days"
+            placeholder="50,55,60"
+            class="full-width"
+          />
+          <small>उदाहरण: 50,55,60 (केस तारीख नंतर 50, 55, आणि 60 दिवसांना स्मरणपत्र)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="reminder90">90 दिवस केस स्मरणपत्र (दिवस, स्वल्पविरामाने विभक्त)</label>
+          <input
+            pInputText
+            id="reminder90"
+            [(ngModel)]="reminder90Days"
+            placeholder="80,85,90"
+            class="full-width"
+          />
+          <small>उदाहरण: 80,85,90 (केस तारीख नंतर 80, 85, आणि 90 दिवसांना स्मरणपत्र)</small>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card class="settings-card">
+      <ng-template pTemplate="header">
+        <div class="card-header">
+          <h2>WhatsApp सेटिंग्ज (Twilio)</h2>
+        </div>
+      </ng-template>
+
+      <div class="form-section">
+        <div class="form-group">
+          <p-checkbox
+            [(ngModel)]="settings.whatsappEnabled"
+            binary="true"
+            inputId="whatsappEnabled"
+            label="WhatsApp सूचना सक्षम करा"
+          ></p-checkbox>
+        </div>
+
+        <div class="form-group">
+          <label for="twilioAccountSid">Twilio Account SID</label>
+          <input
+            pInputText
+            id="twilioAccountSid"
+            [(ngModel)]="settings.twilioAccountSid"
+            placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            class="full-width"
+            [disabled]="!settings.whatsappEnabled"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="twilioAuthToken">Twilio Auth Token</label>
+          <input
+            pInputText
+            type="password"
+            id="twilioAuthToken"
+            [(ngModel)]="settings.twilioAuthToken"
+            placeholder="आपला Twilio Auth Token"
+            class="full-width"
+            [disabled]="!settings.whatsappEnabled"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="twilioFromNumber">Twilio From Number (WhatsApp format: whatsapp:+1234567890)</label>
+          <input
+            pInputText
+            id="twilioFromNumber"
+            [(ngModel)]="settings.twilioFromNumber"
+            placeholder="whatsapp:+1234567890"
+            class="full-width"
+            [disabled]="!settings.whatsappEnabled"
+          />
+        </div>
+      </div>
+    </p-card>
+
+    <div class="action-buttons">
+      <p-button
+        label="सेव्ह करा"
+        icon="pi pi-save"
+        (onClick)="saveSettings()"
+        [loading]="loading"
+        [disabled]="loading"
+        class="save-button"
+      ></p-button>
+    </div>
+  </div>
+</div>
+
+<p-toast></p-toast>
+

@@ -1,14 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
-import { TableModule } from 'primeng/table';
-import { TagModule } from 'primeng/tag';
 import { CaseService } from '../../services/case.service';
-import { ReminderService } from '../../services/reminder.service';
-import { Case } from '../../models/case.model';
-import { Reminder } from '../../models/reminder.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,23 +11,27 @@ import { Reminder } from '../../models/reminder.model';
     CommonModule,
     RouterModule,
     CardModule,
-    ButtonModule,
-    TableModule,
-    TagModule
+    ButtonModule
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
 export class Dashboard implements OnInit {
-  caseStats: any = {};
-  reminderStats: any = {};
-  upcomingHearings: Case[] = [];
-  upcomingReminders: Reminder[] = [];
-  overdueReminders: Reminder[] = [];
+  caseStats: {
+    total: number;
+    pending: number;
+    closed: number;
+    closerToDate: number;
+  } = {
+    total: 0,
+    pending: 0,
+    closed: 0,
+    closerToDate: 0
+  };
 
   constructor(
     private caseService: CaseService,
-    private reminderService: ReminderService
+    private router: Router
   ) {}
 
   async ngOnInit() {
@@ -40,24 +39,15 @@ export class Dashboard implements OnInit {
   }
 
   async loadDashboardData() {
-    // Load case statistics
     this.caseStats = await this.caseService.getCaseStatistics();
+  }
 
-    // Load reminder statistics
-    this.reminderStats = await this.reminderService.getReminderStatistics();
-
-    // Load upcoming hearings
-    this.upcomingHearings = await this.caseService.getUpcomingHearings(7);
-
-    // Load upcoming reminders
-    this.reminderService.getUpcomingReminders(7).subscribe(reminders => {
-      this.upcomingReminders = reminders;
-    });
-
-    // Load overdue reminders
-    this.reminderService.getOverdueReminders().subscribe(reminders => {
-      this.overdueReminders = reminders;
-    });
+  navigateToCases(filter?: string) {
+    if (filter) {
+      this.router.navigate(['/cases'], { queryParams: { filter } });
+    } else {
+      this.router.navigate(['/cases']);
+    }
   }
 
   getCaseSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {

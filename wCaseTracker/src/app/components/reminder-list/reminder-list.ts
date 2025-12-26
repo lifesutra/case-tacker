@@ -65,14 +65,14 @@ export class ReminderList implements OnInit {
       await this.reminderService.toggleComplete(reminder.id!);
       this.messageService.add({
         severity: 'success',
-        summary: 'Success',
-        detail: reminder.isCompleted ? 'Reminder marked as incomplete' : 'Reminder completed'
+        summary: 'यश',
+        detail: reminder.isCompleted ? 'स्मरणपत्र अपूर्ण म्हणून चिन्हांकित केले' : 'स्मरणपत्र पूर्ण झाले'
       });
     } catch (error) {
       this.messageService.add({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to update reminder'
+        summary: 'त्रुटी',
+        detail: 'स्मरणपत्र अपडेट करण्यात अयशस्वी'
       });
     }
   }
@@ -82,14 +82,14 @@ export class ReminderList implements OnInit {
       await this.reminderService.deleteReminder(reminder.id!);
       this.messageService.add({
         severity: 'success',
-        summary: 'Success',
-        detail: 'Reminder deleted'
+        summary: 'यश',
+        detail: 'स्मरणपत्र हटवले'
       });
     } catch (error) {
       this.messageService.add({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to delete reminder'
+        summary: 'त्रुटी',
+        detail: 'स्मरणपत्र हटवण्यात अयशस्वी'
       });
     }
   }

@@ -3,6 +3,9 @@ import { BehaviorSubject, Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
 import { Reminder, ReminderPriority, ReminderType } from '../models/reminder.model';
+import { Case, CaseType } from '../models/case.model';
+import { SettingsService } from './settings.service';
+import { WhatsAppService } from './whatsapp.service';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 
@@ -13,8 +16,13 @@ export class ReminderService {
   private remindersSubject = new BehaviorSubject<Reminder[]>([]);
   public reminders$ = this.remindersSubject.asObservable();
 
-  constructor(private db: DatabaseService) {
+  constructor(
+    private db: DatabaseService,
+    private settingsService: SettingsService,
+    private whatsappService: WhatsAppService
+  ) {
     this.loadReminders();
+    this.startDailyCheck();
   }
 
   // Load all reminders
@@ -199,6 +207,99 @@ export class ReminderService {
       };
 
       new Notification(reminder.title, options);
+    }
+  }
+
+  async generateRemindersForCase(caseItem: Case): Promise<void> {
+    const existingReminders = await this.db.reminders.where('caseId').equals(caseItem.id!).toArray();
+    if (existingReminders.length > 0) {
+      for (const reminder of existingReminders) {
+        await this.deleteReminder(reminder.id!);
+      }
+    }
+
+    const settings = await this.settingsService.getSettings();
+    let reminderDays: number[] = [];
+
+    switch (caseItem.caseType) {
+      case CaseType.DAYS_45:
+        reminderDays = settings.reminderDays45;
+        break;
+      case CaseType.DAYS_60:
+        reminderDays = settings.reminderDays60;
+        break;
+      case CaseType.DAYS_90:
+        reminderDays = settings.reminderDays90;
+        break;
+    }
+
+    const caseDate = new Date(caseItem.caseDate);
+    caseDate.setHours(0, 0, 0, 0);
+
+    for (const days of reminderDays) {
+      const reminderDate = new Date(caseDate);
+      reminderDate.setDate(reminderDate.getDate() + days);
+
+      if (reminderDate >= new Date()) {
+        await this.addReminder({
+          caseId: caseItem.id,
+          title: `केस ${caseItem.caseNumber} - ${days} दिवस स्मरणपत्र`,
+          description: `केस क्रमांक: ${caseItem.caseNumber}, तारीख: ${caseItem.caseDate.toLocaleDateString('mr-IN')}, ${days} दिवस पूर्ण झाले`,
+          dueDate: reminderDate,
+          reminderTime: reminderDate,
+          isCompleted: false,
+          priority: days <= 5 ? ReminderPriority.HIGH : ReminderPriority.MEDIUM,
+          type: ReminderType.FOLLOW_UP,
+          notificationSent: false
+        });
+      }
+    }
+  }
+
+  private startDailyCheck(): void {
+    setInterval(async () => {
+      await this.checkAndSendWhatsAppReminders();
+    }, 60 * 60 * 1000);
+
+    setTimeout(() => this.checkAndSendWhatsAppReminders(), 5000);
+  }
+
+  private async checkAndSendWhatsAppReminders(): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const reminders = await this.db.reminders
+      .where('isCompleted')
+      .equals(0 as any)
+      .toArray();
+
+    for (const reminder of reminders) {
+      const reminderDate = new Date(reminder.dueDate);
+      reminderDate.setHours(0, 0, 0, 0);
+
+      if (reminderDate >= today && reminderDate < tomorrow && !reminder.notificationSent) {
+        if (reminder.caseId) {
+          const caseItem = await this.db.cases.get(reminder.caseId);
+          if (caseItem && caseItem.investigationOfficePhone) {
+            const caseDate = new Date(caseItem.caseDate);
+            const daysRemaining = caseItem.caseType - Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+
+            const sent = await this.whatsappService.sendCaseReminder(
+              caseItem.investigationOfficePhone,
+              caseItem.caseNumber,
+              caseDate,
+              daysRemaining,
+              caseItem.caseType
+            );
+
+            if (sent) {
+              await this.updateReminder(reminder.id!, { notificationSent: true });
+            }
+          }
+        }
+      }
     }
   }
 }

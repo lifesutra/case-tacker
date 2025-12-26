@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
 import { Case, CaseStatus, CasePriority } from '../models/case.model';
+import { ReminderService } from './reminder.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,9 +11,20 @@ import { Case, CaseStatus, CasePriority } from '../models/case.model';
 export class CaseService {
   private casesSubject = new BehaviorSubject<Case[]>([]);
   public cases$ = this.casesSubject.asObservable();
+  private reminderService?: ReminderService;
 
-  constructor(private db: DatabaseService) {
+  constructor(
+    private db: DatabaseService,
+    private injector: Injector
+  ) {
     this.loadCases();
+  }
+
+  private getReminderService(): ReminderService {
+    if (!this.reminderService) {
+      this.reminderService = this.injector.get(ReminderService);
+    }
+    return this.reminderService;
   }
 
   // Load all cases
@@ -62,7 +74,12 @@ export class CaseService {
       updatedAt: new Date()
     };
     const id = await this.db.cases.add(newCase);
+    newCase.id = id;
     await this.loadCases();
+    
+    const reminderService = this.getReminderService();
+    await reminderService.generateRemindersForCase(newCase);
+    
     return id;
   }
 
@@ -73,6 +90,12 @@ export class CaseService {
       updatedAt: new Date()
     });
     await this.loadCases();
+    
+    const updatedCase = await this.db.cases.get(id);
+    if (updatedCase) {
+      const reminderService = this.getReminderService();
+      await reminderService.generateRemindersForCase(updatedCase);
+    }
   }
 
   // Delete case
@@ -81,24 +104,6 @@ export class CaseService {
     // Also delete associated reminders
     await this.db.reminders.where('caseId').equals(id).delete();
     await this.loadCases();
-  }
-
-  // Get case statistics
-  async getCaseStatistics(): Promise<{
-    total: number;
-    open: number;
-    inProgress: number;
-    closed: number;
-    urgent: number;
-  }> {
-    const cases = await this.db.cases.toArray();
-    return {
-      total: cases.length,
-      open: cases.filter(c => c.status === CaseStatus.OPEN).length,
-      inProgress: cases.filter(c => c.status === CaseStatus.IN_PROGRESS || c.status === CaseStatus.UNDER_INVESTIGATION).length,
-      closed: cases.filter(c => c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED).length,
-      urgent: cases.filter(c => c.priority === CasePriority.URGENT).length
-    };
   }
 
   // Get upcoming hearings
@@ -113,5 +118,52 @@ export class CaseService {
       .toArray();
 
     return cases;
+  }
+
+  getDaysRemaining(caseItem: Case): number {
+    const caseDate = new Date(caseItem.caseDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    caseDate.setHours(0, 0, 0, 0);
+    
+    const daysSinceCase = Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = caseItem.caseType - daysSinceCase;
+    
+    return daysRemaining;
+  }
+
+  getCasesCloserToDate(thresholdDays: number = 5): Observable<Case[]> {
+    return this.cases$.pipe(
+      map(cases => cases.filter(c => {
+        if (c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED) {
+          return false;
+        }
+        const daysRemaining = this.getDaysRemaining(c);
+        return daysRemaining >= 0 && daysRemaining <= thresholdDays;
+      }))
+    );
+  }
+
+  async getCaseStatistics(): Promise<{
+    total: number;
+    pending: number;
+    closed: number;
+    closerToDate: number;
+  }> {
+    const cases = await this.db.cases.toArray();
+    const closerToDate = cases.filter(c => {
+      if (c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED) {
+        return false;
+      }
+      const daysRemaining = this.getDaysRemaining(c);
+      return daysRemaining >= 0 && daysRemaining <= 5;
+    }).length;
+
+    return {
+      total: cases.length,
+      pending: cases.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED).length,
+      closed: cases.filter(c => c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED).length,
+      closerToDate
+    };
   }
 }

@@ -1,70 +1,70 @@
 <div class="case-form-container">
-  <p-card [header]="isEditMode ? 'Edit Case' : 'New Case'">
+  <p-card [header]="isEditMode ? 'केस संपादित करा' : 'नवीन केस'">
     <form [formGroup]="caseForm" (ngSubmit)="onSubmit()">
       <div class="form-grid">
         <div class="form-field">
-          <label for="caseNumber">Case Number *</label>
-          <input pInputText id="caseNumber" formControlName="caseNumber" placeholder="Enter case number" />
+          <label for="caseNumber">केस क्रमांक *</label>
+          <input pInputText id="caseNumber" formControlName="caseNumber" placeholder="केस क्रमांक प्रविष्ट करा" />
         </div>
 
         <div class="form-field">
-          <label for="title">Title *</label>
-          <input pInputText id="title" formControlName="title" placeholder="Enter case title" />
+          <label for="title">शीर्षक *</label>
+          <input pInputText id="title" formControlName="title" placeholder="केस शीर्षक प्रविष्ट करा" />
         </div>
 
         <div class="form-field full-width">
-          <label for="description">Description *</label>
+          <label for="description">वर्णन *</label>
           <textarea
             pTextarea
             id="description"
             formControlName="description"
             rows="3"
-            placeholder="Enter case description"
+            placeholder="केस वर्णन प्रविष्ट करा"
           ></textarea>
         </div>
 
         <div class="form-field">
-          <label for="status">Status *</label>
+          <label for="status">स्थिती *</label>
           <p-select
             id="status"
             formControlName="status"
             [options]="statusOptions"
-            placeholder="Select status"
+            placeholder="स्थिती निवडा"
           ></p-select>
         </div>
 
         <div class="form-field">
-          <label for="priority">Priority *</label>
+          <label for="priority">प्राधान्य *</label>
           <p-select
             id="priority"
             formControlName="priority"
             [options]="priorityOptions"
-            placeholder="Select priority"
+            placeholder="प्राधान्य निवडा"
           ></p-select>
         </div>
 
         <div class="form-field">
-          <label for="category">Category *</label>
-          <input pInputText id="category" formControlName="category" placeholder="e.g. Theft, Assault" />
+          <label for="category">श्रेणी *</label>
+          <input pInputText id="category" formControlName="category" placeholder="उदा. चोरी, हल्ला" />
         </div>
 
         <div class="form-field">
-          <label for="location">Location *</label>
-          <input pInputText id="location" formControlName="location" placeholder="Enter location" />
+          <label for="location">स्थान *</label>
+          <input pInputText id="location" formControlName="location" placeholder="स्थान प्रविष्ट करा" />
         </div>
 
         <div class="form-field">
-          <label for="complainant">Complainant</label>
-          <input pInputText id="complainant" formControlName="complainant" placeholder="Enter complainant name" />
+          <label for="complainant">तक्रारदार</label>
+          <input pInputText id="complainant" formControlName="complainant" placeholder="तक्रारदाराचे नाव प्रविष्ट करा" />
         </div>
 
         <div class="form-field">
-          <label for="accused">Accused</label>
-          <input pInputText id="accused" formControlName="accused" placeholder="Enter accused name" />
+          <label for="accused">आरोपी</label>
+          <input pInputText id="accused" formControlName="accused" placeholder="आरोपीचे नाव प्रविष्ट करा" />
         </div>
 
         <div class="form-field">
-          <label for="filingDate">Filing Date *</label>
+          <label for="filingDate">दाखल तारीख *</label>
           <p-datepicker
             id="filingDate"
             formControlName="filingDate"
@@ -74,7 +74,37 @@
         </div>
 
         <div class="form-field">
-          <label for="nextHearingDate">Next Hearing Date</label>
+          <label for="caseDate">केस तारीख *</label>
+          <p-datepicker
+            id="caseDate"
+            formControlName="caseDate"
+            [showIcon]="true"
+            dateFormat="mm/dd/yy"
+          ></p-datepicker>
+        </div>
+
+        <div class="form-field">
+          <label for="caseType">केस प्रकार *</label>
+          <p-select
+            id="caseType"
+            formControlName="caseType"
+            [options]="caseTypeOptions"
+            placeholder="केस प्रकार निवडा"
+          ></p-select>
+        </div>
+
+        <div class="form-field">
+          <label for="investigationOfficeName">तपासणी कार्यालय</label>
+          <input pInputText id="investigationOfficeName" formControlName="investigationOfficeName" placeholder="तपासणी कार्यालयाचे नाव" />
+        </div>
+
+        <div class="form-field">
+          <label for="investigationOfficePhone">तपासणी कार्यालय फोन</label>
+          <input pInputText id="investigationOfficePhone" formControlName="investigationOfficePhone" placeholder="फोन नंबर" />
+        </div>
+
+        <div class="form-field">
+          <label for="nextHearingDate">पुढील सुनावणी तारीख</label>
           <p-datepicker
             id="nextHearingDate"
             formControlName="nextHearingDate"
@@ -84,21 +114,21 @@
         </div>
 
         <div class="form-field full-width">
-          <label for="notes">Notes</label>
+          <label for="notes">नोट्स</label>
           <textarea
             pTextarea
             id="notes"
             formControlName="notes"
             rows="3"
-            placeholder="Additional notes"
+            placeholder="अतिरिक्त नोट्स"
           ></textarea>
         </div>
       </div>
 
       <div class="form-actions">
-        <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="onCancel()"></p-button>
+        <p-button label="रद्द करा" severity="secondary" [outlined]="true" (onClick)="onCancel()"></p-button>
         <p-button
-          [label]="isEditMode ? 'Update' : 'Create'"
+          [label]="isEditMode ? 'अपडेट करा' : 'तयार करा'"
           type="submit"
           [loading]="loading"
           [disabled]="caseForm.invalid"

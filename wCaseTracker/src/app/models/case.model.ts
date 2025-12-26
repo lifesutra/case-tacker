@@ -10,6 +10,11 @@ export interface Case {
   complainant?: string;
   accused?: string;
   filingDate: Date;
+  caseDate: Date;
+  caseType: CaseType;
+  investigationOfficeId?: number;
+  investigationOfficeName?: string;
+  investigationOfficePhone?: string;
   nextHearingDate?: Date;
   closedDate?: Date;
   notes?: string;
@@ -31,4 +36,10 @@ export enum CasePriority {
   MEDIUM = 'Medium',
   HIGH = 'High',
   URGENT = 'Urgent'
+}
+
+export enum CaseType {
+  DAYS_45 = 45,
+  DAYS_60 = 60,
+  DAYS_90 = 90
 }

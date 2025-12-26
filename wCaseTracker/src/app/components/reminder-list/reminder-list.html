@@ -1,178 +1,219 @@
 <div class="reminder-list-container">
-  <div class="header">
-    <h1>Reminders</h1>
-    <p-button label="New Reminder" icon="pi pi-plus" routerLink="/reminders/new"></p-button>
+  <div class="page-header">
+    <div class="header-content">
+      <h1>स्मरणपत्रे</h1>
+      <p-button 
+        label="नवीन स्मरणपत्र" 
+        icon="pi pi-plus" 
+        routerLink="/reminders/new"
+        [style]="{ 'font-weight': '600' }"
+      ></p-button>
+    </div>
   </div>
 
-  <!-- Overdue Reminders -->
-  <p-card header="Overdue Reminders" class="section-card" *ngIf="overdueReminders.length > 0">
-    <p-table [value]="overdueReminders" [tableStyle]="{ 'min-width': '50rem' }">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Title</th>
-          <th>Type</th>
-          <th>Due Date</th>
-          <th>Priority</th>
-          <th>Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-reminder>
-        <tr [ngClass]="{ 'completed-row': reminder.isCompleted }">
-          <td>
-            <div class="reminder-title">
-              <p-checkbox
-                [(ngModel)]="reminder.isCompleted"
-                [binary]="true"
-                (onChange)="toggleComplete(reminder)"
-              ></p-checkbox>
-              <span [ngClass]="{ 'completed-text': reminder.isCompleted }">{{ reminder.title }}</span>
-            </div>
-          </td>
-          <td>{{ reminder.type }}</td>
-          <td>
-            <span class="overdue-date">{{ reminder.dueDate | date: 'short' }}</span>
-          </td>
-          <td>
-            <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
-          </td>
-          <td>
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              [rounded]="true"
-              (onClick)="deleteReminder(reminder)"
-            ></p-button>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
+  <div class="content-card" *ngIf="overdueReminders.length > 0">
+    <div class="card-header">
+      <h2 class="card-title">
+        <i class="pi pi-exclamation-triangle"></i>
+        मागणी झालेली स्मरणपत्रे
+      </h2>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <p-table [value]="overdueReminders" [tableStyle]="{ 'min-width': '50rem' }" styleClass="modern-table">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>शीर्षक</th>
+              <th>प्रकार</th>
+              <th>नियत तारीख</th>
+              <th>प्राधान्य</th>
+              <th class="actions-column">कृती</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-reminder>
+            <tr [ngClass]="{ 'completed-row': reminder.isCompleted }">
+              <td>
+                <div class="reminder-title">
+                  <p-checkbox
+                    [(ngModel)]="reminder.isCompleted"
+                    [binary]="true"
+                    (onChange)="toggleComplete(reminder)"
+                  ></p-checkbox>
+                  <span [ngClass]="{ 'completed-text': reminder.isCompleted }">{{ reminder.title }}</span>
+                </div>
+              </td>
+              <td>{{ reminder.type }}</td>
+              <td>
+                <span class="overdue-date">{{ reminder.dueDate | date: 'short' }}</span>
+              </td>
+              <td>
+                <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
+              </td>
+              <td>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="deleteReminder(reminder)"
+                  [style]="{ 'padding': '0.5rem' }"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
 
-  <!-- Pending Reminders -->
-  <p-card header="Pending Reminders" class="section-card">
-    <p-table
-      [value]="pendingReminders"
-      [paginator]="true"
-      [rows]="10"
-      [tableStyle]="{ 'min-width': '50rem' }"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Title</th>
-          <th>Type</th>
-          <th>Due Date</th>
-          <th>Priority</th>
-          <th>Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-reminder>
-        <tr [ngClass]="{ 'completed-row': reminder.isCompleted }">
-          <td>
-            <div class="reminder-title">
-              <p-checkbox
-                [(ngModel)]="reminder.isCompleted"
-                [binary]="true"
-                (onChange)="toggleComplete(reminder)"
-              ></p-checkbox>
-              <span [ngClass]="{ 'completed-text': reminder.isCompleted }">{{ reminder.title }}</span>
-            </div>
-          </td>
-          <td>{{ reminder.type }}</td>
-          <td>
-            <span [ngClass]="{ 'overdue-date': isOverdue(reminder.dueDate) }">
-              {{ reminder.dueDate | date: 'short' }}
-            </span>
-          </td>
-          <td>
-            <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
-          </td>
-          <td>
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              [rounded]="true"
-              (onClick)="deleteReminder(reminder)"
-            ></p-button>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="5" class="empty-message">
-            <i class="pi pi-info-circle"></i> No pending reminders
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <i class="pi pi-clock"></i>
+        प्रलंबित स्मरणपत्रे
+      </h2>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <p-table
+          [value]="pendingReminders"
+          [paginator]="true"
+          [rows]="10"
+          [tableStyle]="{ 'min-width': '50rem' }"
+          styleClass="modern-table"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>शीर्षक</th>
+              <th>प्रकार</th>
+              <th>नियत तारीख</th>
+              <th>प्राधान्य</th>
+              <th class="actions-column">कृती</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-reminder>
+            <tr [ngClass]="{ 'completed-row': reminder.isCompleted }">
+              <td>
+                <div class="reminder-title">
+                  <p-checkbox
+                    [(ngModel)]="reminder.isCompleted"
+                    [binary]="true"
+                    (onChange)="toggleComplete(reminder)"
+                  ></p-checkbox>
+                  <span [ngClass]="{ 'completed-text': reminder.isCompleted }">{{ reminder.title }}</span>
+                </div>
+              </td>
+              <td>{{ reminder.type }}</td>
+              <td>
+                <span [ngClass]="{ 'overdue-date': isOverdue(reminder.dueDate) }">
+                  {{ reminder.dueDate | date: 'short' }}
+                </span>
+              </td>
+              <td>
+                <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
+              </td>
+              <td>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="deleteReminder(reminder)"
+                  [style]="{ 'padding': '0.5rem' }"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="empty-message">
+                <i class="pi pi-info-circle"></i>
+                <span>कोणतीही प्रलंबित स्मरणपत्रे नाहीत</span>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
 
-  <!-- All Reminders -->
-  <p-card header="All Reminders" class="section-card">
-    <p-table
-      [value]="reminders"
-      [paginator]="true"
-      [rows]="10"
-      [tableStyle]="{ 'min-width': '50rem' }"
-    >
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Title</th>
-          <th>Type</th>
-          <th>Due Date</th>
-          <th>Priority</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-reminder>
-        <tr [ngClass]="{ 'completed-row': reminder.isCompleted }">
-          <td>
-            <div class="reminder-title">
-              <p-checkbox
-                [(ngModel)]="reminder.isCompleted"
-                [binary]="true"
-                (onChange)="toggleComplete(reminder)"
-              ></p-checkbox>
-              <span [ngClass]="{ 'completed-text': reminder.isCompleted }">{{ reminder.title }}</span>
-            </div>
-          </td>
-          <td>{{ reminder.type }}</td>
-          <td>
-            <span [ngClass]="{ 'overdue-date': isOverdue(reminder.dueDate) && !reminder.isCompleted }">
-              {{ reminder.dueDate | date: 'short' }}
-            </span>
-          </td>
-          <td>
-            <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
-          </td>
-          <td>
-            <p-tag
-              [value]="reminder.isCompleted ? 'Completed' : 'Pending'"
-              [severity]="reminder.isCompleted ? 'success' : 'warn'"
-            ></p-tag>
-          </td>
-          <td>
-            <p-button
-              icon="pi pi-trash"
-              severity="danger"
-              [text]="true"
-              [rounded]="true"
-              (onClick)="deleteReminder(reminder)"
-            ></p-button>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="6" class="empty-message">
-            <i class="pi pi-info-circle"></i> No reminders found
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
+  <div class="content-card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <i class="pi pi-list"></i>
+        सर्व स्मरणपत्रे
+      </h2>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <p-table
+          [value]="reminders"
+          [paginator]="true"
+          [rows]="10"
+          [tableStyle]="{ 'min-width': '50rem' }"
+          styleClass="modern-table"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>शीर्षक</th>
+              <th>प्रकार</th>
+              <th>नियत तारीख</th>
+              <th>प्राधान्य</th>
+              <th>स्थिती</th>
+              <th class="actions-column">कृती</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-reminder>
+            <tr [ngClass]="{ 'completed-row': reminder.isCompleted }">
+              <td>
+                <div class="reminder-title">
+                  <p-checkbox
+                    [(ngModel)]="reminder.isCompleted"
+                    [binary]="true"
+                    (onChange)="toggleComplete(reminder)"
+                  ></p-checkbox>
+                  <span [ngClass]="{ 'completed-text': reminder.isCompleted }">{{ reminder.title }}</span>
+                </div>
+              </td>
+              <td>{{ reminder.type }}</td>
+              <td>
+                <span [ngClass]="{ 'overdue-date': isOverdue(reminder.dueDate) && !reminder.isCompleted }">
+                  {{ reminder.dueDate | date: 'short' }}
+                </span>
+              </td>
+              <td>
+                <p-tag [value]="reminder.priority" [severity]="getReminderSeverity(reminder.priority)"></p-tag>
+              </td>
+              <td>
+                <p-tag
+                  [value]="reminder.isCompleted ? 'पूर्ण झाले' : 'प्रलंबित'"
+                  [severity]="reminder.isCompleted ? 'success' : 'warn'"
+                ></p-tag>
+              </td>
+              <td>
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="deleteReminder(reminder)"
+                  [style]="{ 'padding': '0.5rem' }"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="empty-message">
+                <i class="pi pi-info-circle"></i>
+                <span>कोणतीही स्मरणपत्रे सापडली नाहीत</span>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <p-toast></p-toast>

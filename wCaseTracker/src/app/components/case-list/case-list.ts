@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,8 @@ import { ToastModule } from 'primeng/toast';
 import { SelectModule } from 'primeng/select';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CaseService } from '../../services/case.service';
-import { Case, CaseStatus, CasePriority } from '../../models/case.model';
+import { WhatsAppService } from '../../services/whatsapp.service';
+import { Case, CaseStatus, CasePriority, CaseType } from '../../models/case.model';
 
 @Component({
   selector: 'app-case-list',
@@ -37,33 +38,54 @@ export class CaseList implements OnInit {
   searchTerm: string = '';
   selectedStatus: string | null = null;
   selectedPriority: string | null = null;
+  selectedCaseType: number | null = null;
 
   statusOptions = [
-    { label: 'All', value: null },
-    { label: 'Open', value: CaseStatus.OPEN },
-    { label: 'In Progress', value: CaseStatus.IN_PROGRESS },
-    { label: 'Under Investigation', value: CaseStatus.UNDER_INVESTIGATION },
-    { label: 'Pending Court', value: CaseStatus.PENDING_COURT },
-    { label: 'Closed', value: CaseStatus.CLOSED },
-    { label: 'Archived', value: CaseStatus.ARCHIVED }
+    { label: 'सर्व', value: null },
+    { label: 'उघडा', value: CaseStatus.OPEN },
+    { label: 'प्रगतीत', value: CaseStatus.IN_PROGRESS },
+    { label: 'तपासणी अंतर्गत', value: CaseStatus.UNDER_INVESTIGATION },
+    { label: 'न्यायालयासाठी प्रलंबित', value: CaseStatus.PENDING_COURT },
+    { label: 'बंद', value: CaseStatus.CLOSED },
+    { label: 'संग्रहित', value: CaseStatus.ARCHIVED }
   ];
 
   priorityOptions = [
-    { label: 'All', value: null },
-    { label: 'Low', value: CasePriority.LOW },
-    { label: 'Medium', value: CasePriority.MEDIUM },
-    { label: 'High', value: CasePriority.HIGH },
-    { label: 'Urgent', value: CasePriority.URGENT }
+    { label: 'सर्व', value: null },
+    { label: 'कमी', value: CasePriority.LOW },
+    { label: 'मध्यम', value: CasePriority.MEDIUM },
+    { label: 'उच्च', value: CasePriority.HIGH },
+    { label: 'तातडीचे', value: CasePriority.URGENT }
+  ];
+
+  caseTypeOptions = [
+    { label: 'सर्व', value: null },
+    { label: '45 दिवस', value: CaseType.DAYS_45 },
+    { label: '60 दिवस', value: CaseType.DAYS_60 },
+    { label: '90 दिवस', value: CaseType.DAYS_90 }
   ];
 
   constructor(
     private caseService: CaseService,
+    private whatsappService: WhatsAppService,
     private router: Router,
+    private route: ActivatedRoute,
     private confirmationService: ConfirmationService,
     private messageService: MessageService
   ) {}
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['filter'] === 'pending') {
+        this.selectedStatus = null;
+        this.applyFilters();
+      } else if (params['filter'] === 'closed') {
+        this.selectedStatus = CaseStatus.CLOSED;
+        this.applyFilters();
+      } else if (params['filter'] === 'alert') {
+        this.applyFilters();
+      }
+    });
     this.loadCases();
   }
 
@@ -92,11 +114,29 @@ export class CaseList implements OnInit {
     // Status filter
     if (this.selectedStatus) {
       filtered = filtered.filter(c => c.status === this.selectedStatus);
+    } else if (this.route.snapshot.queryParams['filter'] === 'pending') {
+      filtered = filtered.filter(c => c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED);
     }
 
     // Priority filter
     if (this.selectedPriority) {
       filtered = filtered.filter(c => c.priority === this.selectedPriority);
+    }
+
+    // Case type filter
+    if (this.selectedCaseType !== null) {
+      filtered = filtered.filter(c => c.caseType === this.selectedCaseType);
+    }
+
+    // Alert filter (closer to date)
+    if (this.route.snapshot.queryParams['filter'] === 'alert') {
+      filtered = filtered.filter(c => {
+        if (c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED) {
+          return false;
+        }
+        const daysRemaining = this.caseService.getDaysRemaining(c);
+        return daysRemaining >= 0 && daysRemaining <= 5;
+      });
     }
 
     this.filteredCases = filtered;
@@ -114,6 +154,78 @@ export class CaseList implements OnInit {
     this.applyFilters();
   }
 
+  onCaseTypeChange() {
+    this.applyFilters();
+  }
+
+  getDaysRemaining(caseItem: Case): number {
+    return this.caseService.getDaysRemaining(caseItem);
+  }
+
+  getDaysRemainingColor(caseItem: Case): string {
+    const daysRemaining = this.getDaysRemaining(caseItem);
+    
+    if (caseItem.status === CaseStatus.CLOSED || caseItem.status === CaseStatus.ARCHIVED) {
+      return 'gray';
+    }
+
+    if (daysRemaining < 0) {
+      return 'red';
+    } else if (daysRemaining <= 5) {
+      return 'red';
+    } else if (daysRemaining <= 10) {
+      return 'orange';
+    } else if (daysRemaining <= 20) {
+      return 'yellow';
+    } else {
+      return 'green';
+    }
+  }
+
+  async sendWhatsApp(caseItem: Case) {
+    if (!caseItem.investigationOfficePhone) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'सूचना',
+        detail: 'या केससाठी फोन नंबर उपलब्ध नाही'
+      });
+      return;
+    }
+
+    const isConfigured = await this.whatsappService.isConfigured();
+    if (!isConfigured) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'सूचना',
+        detail: 'कृपया सेटिंग्जमध्ये WhatsApp कॉन्फिगर करा'
+      });
+      return;
+    }
+
+    const daysRemaining = this.getDaysRemaining(caseItem);
+    const success = await this.whatsappService.sendCaseReminder(
+      caseItem.investigationOfficePhone,
+      caseItem.caseNumber,
+      caseItem.caseDate,
+      daysRemaining,
+      caseItem.caseType
+    );
+
+    if (success) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'यश',
+        detail: 'WhatsApp संदेश यशस्वीरित्या पाठवला'
+      });
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'त्रुटी',
+        detail: 'WhatsApp संदेश पाठवताना त्रुटी आली'
+      });
+    }
+  }
+
   viewCase(caseItem: Case) {
     this.router.navigate(['/cases', caseItem.id]);
   }
@@ -124,22 +236,22 @@ export class CaseList implements OnInit {
 
   deleteCase(caseItem: Case) {
     this.confirmationService.confirm({
-      message: `Are you sure you want to delete case ${caseItem.caseNumber}?`,
-      header: 'Delete Confirmation',
+      message: `तुम्हाला खात्री आहे की तुम्ही केस ${caseItem.caseNumber} हटवू इच्छिता?`,
+      header: 'हटवण्याची पुष्टी',
       icon: 'pi pi-exclamation-triangle',
       accept: async () => {
         try {
           await this.caseService.deleteCase(caseItem.id!);
           this.messageService.add({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Case deleted successfully'
+            summary: 'यश',
+            detail: 'केस यशस्वीरित्या हटवला'
           });
         } catch (error) {
           this.messageService.add({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to delete case'
+            summary: 'त्रुटी',
+            detail: 'केस हटवण्यात अयशस्वी'
           });
         }
       }

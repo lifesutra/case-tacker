@@ -1,0 +1,79 @@
+.upload-container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.upload-header {
+  margin-bottom: 2rem;
+
+  h1 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    font-size: 2rem;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+  }
+}
+
+.upload-card {
+  ::ng-deep .p-card-body {
+    padding: 2rem;
+  }
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.upload-instructions {
+  h3 {
+    margin: 0 0 1rem 0;
+    color: #333;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #666;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.file-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  padding: 2rem;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background: #f8f9fa;
+
+  .file-upload {
+    ::ng-deep .p-button {
+      min-width: 200px;
+    }
+  }
+}
+
+.upload-progress {
+  width: 100%;
+  margin-top: 1rem;
+
+  .progress-text {
+    margin-top: 0.5rem;
+    text-align: center;
+    color: #666;
+    font-weight: 500;
+  }
+}
+

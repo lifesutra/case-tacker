@@ -1,7 +1,21 @@
 .case-form-container {
-  padding: 1.5rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 100%;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.p-card {
+  .p-card-body {
+    padding: 2rem;
+  }
 }
 
 .form-grid {
@@ -9,12 +23,17 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
 
   &.full-width {
     grid-column: 1 / -1;
@@ -22,12 +41,22 @@
 
   label {
     font-weight: 600;
-    color: #333;
-    font-size: 0.9rem;
+    color: var(--mh-police-text);
+    font-size: 0.9375rem;
+    margin-bottom: 0.25rem;
   }
 
-  input, textarea, p-dropdown, p-calendar {
+  input,
+  textarea,
+  p-dropdown,
+  p-select,
+  p-calendar {
     width: 100%;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
   }
 }
 
@@ -35,19 +64,27 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--mh-police-border);
+
+  @media (max-width: 640px) {
+    flex-direction: column-reverse;
+
+    .p-button {
+      width: 100%;
+    }
+  }
 }
 
 @media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+  .p-card {
+    .p-card-body {
+      padding: 1.5rem;
+    }
   }
 
-  .form-actions {
-    flex-direction: column;
-
-    p-button {
-      width: 100%;
-    }
+  .form-grid {
+    gap: 1rem;
   }
 }

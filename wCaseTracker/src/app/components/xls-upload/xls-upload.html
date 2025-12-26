@@ -1,0 +1,54 @@
+<div class="upload-container">
+  <div class="upload-header">
+    <h1>Excel फाइल अपलोड करा</h1>
+    <p>केस तपशीलांसह Excel फाइल (xlsx/xls) अपलोड करा</p>
+  </div>
+
+  <p-card class="upload-card">
+    <div class="upload-content">
+      <div class="upload-instructions">
+        <h3>Excel फाइल संरचना:</h3>
+        <p>फाइलमध्ये खालील संरचना असावी:</p>
+        <ul>
+          <li><strong>स्तंभ 1:</strong> रिक्त किंवा अ.क्र. (Serial Number)</li>
+          <li><strong>स्तंभ 2:</strong> अधिकारी/अमंलदार नाव व पदनाम किंवा कालावधी</li>
+          <li><strong>स्तंभ 3:</strong> कालावधी (जेव्हा अधिकारी पंक्ती असते) किंवा अ.क्र.</li>
+          <li><strong>स्तंभ 4:</strong> अ.क्र. (Case Serial Number)</li>
+          <li><strong>स्तंभ 5:</strong> गुरनं नंबर (Case Number) - <strong>आवश्यक</strong></li>
+          <li><strong>स्तंभ 6:</strong> गुन्हा दा. दिंनाक (Crime Registration Date) - <strong>आवश्यक</strong></li>
+        </ul>
+        <p><strong>कालावधी प्रकार:</strong></p>
+        <ul>
+          <li>1 वर्षा वरील → 90 दिवस केस</li>
+          <li>6 ते 12 महिने → 90 दिवस केस</li>
+          <li>3 ते 6 महिने → 60 दिवस केस</li>
+          <li>1 ते 3 महिने → 45 दिवस केस</li>
+        </ul>
+        <p><em>नोंद: केस प्रकार कालावधीच्या आधारावर स्वयंचलितपणे निर्धारित केला जातो.</em></p>
+      </div>
+
+      <div class="file-upload-section">
+        <p-fileUpload
+          mode="basic"
+          accept=".xlsx,.xls"
+          [auto]="false"
+          [maxFileSize]="10000000"
+          (onSelect)="onFileSelect($event)"
+          chooseLabel="फाइल निवडा"
+          [disabled]="uploading"
+          class="file-upload"
+        ></p-fileUpload>
+
+        <div *ngIf="uploading" class="upload-progress">
+          <p-progressBar [value]="progress"></p-progressBar>
+          <p class="progress-text">
+            {{ uploadedCount }} / {{ totalCount }} केसेस अपलोड केले
+          </p>
+        </div>
+      </div>
+    </div>
+  </p-card>
+</div>
+
+<p-toast></p-toast>
+

@@ -11,7 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { CaseService } from '../../services/case.service';
-import { Case, CaseStatus, CasePriority } from '../../models/case.model';
+import { Case, CaseStatus, CasePriority, CaseType } from '../../models/case.model';
 
 @Component({
   selector: 'app-case-form',
@@ -38,19 +38,25 @@ export class CaseForm implements OnInit {
   loading = false;
 
   statusOptions = [
-    { label: 'Open', value: CaseStatus.OPEN },
-    { label: 'In Progress', value: CaseStatus.IN_PROGRESS },
-    { label: 'Under Investigation', value: CaseStatus.UNDER_INVESTIGATION },
-    { label: 'Pending Court', value: CaseStatus.PENDING_COURT },
-    { label: 'Closed', value: CaseStatus.CLOSED },
-    { label: 'Archived', value: CaseStatus.ARCHIVED }
+    { label: 'उघडा', value: CaseStatus.OPEN },
+    { label: 'प्रगतीत', value: CaseStatus.IN_PROGRESS },
+    { label: 'तपासणी अंतर्गत', value: CaseStatus.UNDER_INVESTIGATION },
+    { label: 'न्यायालयासाठी प्रलंबित', value: CaseStatus.PENDING_COURT },
+    { label: 'बंद', value: CaseStatus.CLOSED },
+    { label: 'संग्रहित', value: CaseStatus.ARCHIVED }
   ];
 
   priorityOptions = [
-    { label: 'Low', value: CasePriority.LOW },
-    { label: 'Medium', value: CasePriority.MEDIUM },
-    { label: 'High', value: CasePriority.HIGH },
-    { label: 'Urgent', value: CasePriority.URGENT }
+    { label: 'कमी', value: CasePriority.LOW },
+    { label: 'मध्यम', value: CasePriority.MEDIUM },
+    { label: 'उच्च', value: CasePriority.HIGH },
+    { label: 'तातडीचे', value: CasePriority.URGENT }
+  ];
+
+  caseTypeOptions = [
+    { label: '45 दिवस', value: CaseType.DAYS_45 },
+    { label: '60 दिवस', value: CaseType.DAYS_60 },
+    { label: '90 दिवस', value: CaseType.DAYS_90 }
   ];
 
   constructor(
@@ -86,6 +92,10 @@ export class CaseForm implements OnInit {
       complainant: [''],
       accused: [''],
       filingDate: [new Date(), Validators.required],
+      caseDate: [new Date(), Validators.required],
+      caseType: [CaseType.DAYS_60, Validators.required],
+      investigationOfficeName: [''],
+      investigationOfficePhone: [''],
       nextHearingDate: [null],
       notes: ['']
     });
@@ -97,6 +107,7 @@ export class CaseForm implements OnInit {
         this.caseForm.patchValue({
           ...caseData,
           filingDate: new Date(caseData.filingDate),
+          caseDate: caseData.caseDate ? new Date(caseData.caseDate) : new Date(caseData.filingDate),
           nextHearingDate: caseData.nextHearingDate ? new Date(caseData.nextHearingDate) : null
         });
       }
@@ -107,8 +118,8 @@ export class CaseForm implements OnInit {
     if (this.caseForm.invalid) {
       this.messageService.add({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Please fill all required fields'
+        summary: 'त्रुटी',
+        detail: 'कृपया सर्व आवश्यक फील्ड भरा'
       });
       return;
     }
@@ -122,15 +133,15 @@ export class CaseForm implements OnInit {
         await this.caseService.updateCase(this.caseId, formValue);
         this.messageService.add({
           severity: 'success',
-          summary: 'Success',
-          detail: 'Case updated successfully'
+          summary: 'यश',
+          detail: 'केस यशस्वीरित्या अपडेट झाला'
         });
       } else {
         await this.caseService.addCase(formValue);
         this.messageService.add({
           severity: 'success',
-          summary: 'Success',
-          detail: 'Case created successfully'
+          summary: 'यश',
+          detail: 'केस यशस्वीरित्या तयार झाला'
         });
       }
 
@@ -140,8 +151,8 @@ export class CaseForm implements OnInit {
     } catch (error) {
       this.messageService.add({
         severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to save case'
+        summary: 'त्रुटी',
+        detail: 'केस सेव्ह करण्यात अयशस्वी'
       });
     } finally {
       this.loading = false;

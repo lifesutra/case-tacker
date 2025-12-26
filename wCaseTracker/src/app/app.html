@@ -1,14 +1,72 @@
 <div class="app-container">
-  <p-menubar [model]="menuItems">
-    <ng-template pTemplate="start">
+  <header class="app-header">
+    <div class="header-content">
+      <button class="menu-toggle" (click)="toggleSidebar()" aria-label="Toggle menu">
+        <i class="pi pi-bars"></i>
+      </button>
       <div class="app-logo">
-        <i class="pi pi-shield" style="font-size: 1.5rem; margin-right: 0.5rem;"></i>
-        <span class="app-title">{{ title() }}</span>
+        <i class="pi pi-shield"></i>
+        <div class="logo-text">
+          <span class="app-title">{{ title() }}</span>
+          <span class="app-subtitle">महाराष्ट्र पोलीस</span>
+        </div>
       </div>
-    </ng-template>
-  </p-menubar>
+    </div>
+  </header>
 
-  <main class="main-content">
-    <router-outlet />
-  </main>
+  <div class="app-layout">
+    <aside class="sidebar" [class.sidebar-open]="sidebarVisible || !isMobile">
+      <div class="sidebar-content">
+        <nav class="sidebar-nav">
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="pi pi-home"></i>
+            <span>डॅशबोर्ड</span>
+          </a>
+          
+          <div class="nav-section">
+            <div class="nav-section-header">
+              <i class="pi pi-briefcase"></i>
+              <span>केसेस</span>
+            </div>
+            <div class="nav-section-items">
+              <a routerLink="/cases" routerLinkActive="active" class="nav-item sub-item" (click)="closeSidebar()">
+                <i class="pi pi-list"></i>
+                <span>सर्व केसेस पहा</span>
+              </a>
+              <a routerLink="/cases/new" routerLinkActive="active" class="nav-item sub-item" (click)="closeSidebar()">
+                <i class="pi pi-plus"></i>
+                <span>नवीन केस</span>
+              </a>
+            </div>
+          </div>
+
+          <a routerLink="/xls-upload" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="pi pi-upload"></i>
+            <span>Excel अपलोड</span>
+          </a>
+
+          <a routerLink="/reminders" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="pi pi-bell"></i>
+            <span>स्मरणपत्रे</span>
+          </a>
+
+          <a routerLink="/settings" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="pi pi-cog"></i>
+            <span>सेटिंग्ज</span>
+          </a>
+
+          <a (click)="logout()" class="nav-item" style="cursor: pointer;">
+            <i class="pi pi-sign-out"></i>
+            <span>लॉगआउट</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" [class.active]="sidebarVisible && isMobile" (click)="closeSidebar()"></div>
+
+    <main class="main-content">
+      <router-outlet />
+    </main>
+  </div>
 </div>
