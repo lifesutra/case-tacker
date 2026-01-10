@@ -104,6 +104,22 @@
         </div>
 
         <div class="form-field">
+          <label for="investigationPeriod">तपासाचा कालावधी (दिवस)</label>
+          <input pInputText type="number" id="investigationPeriod" formControlName="investigationPeriod" placeholder="उदा. 60" />
+        </div>
+
+        <div class="form-field full-width">
+          <label for="remarks">शेरा</label>
+          <textarea
+            pTextarea
+            id="remarks"
+            formControlName="remarks"
+            rows="2"
+            placeholder="शेरा/टिप्पण्या"
+          ></textarea>
+        </div>
+
+        <div class="form-field">
           <label for="nextHearingDate">पुढील सुनावणी तारीख</label>
           <p-datepicker
             id="nextHearingDate"
@@ -122,6 +138,49 @@
             rows="3"
             placeholder="अतिरिक्त नोट्स"
           ></textarea>
+        </div>
+
+        <!-- Communication Tracking Section -->
+        <div class="form-section-divider"></div>
+        <h3 class="form-section-title">संपर्क माहिती</h3>
+
+        <div class="form-field">
+          <label for="reminderAttemptCount">स्मरणपत्र प्रयत्न संख्या</label>
+          <input pInputText type="number" id="reminderAttemptCount"
+                 formControlName="reminderAttemptCount"
+                 placeholder="0" readonly />
+        </div>
+
+        <div class="form-field">
+          <label for="callStatus">कॉल स्थिती</label>
+          <p-select id="callStatus" formControlName="callStatus"
+                    [options]="callStatusOptions"
+                    placeholder="कॉल स्थिती निवडा"></p-select>
+        </div>
+
+        <div class="form-field">
+          <label for="lastCallDate">शेवटचा कॉल तारीख</label>
+          <p-datepicker id="lastCallDate" formControlName="lastCallDate"
+                        [showIcon]="true" dateFormat="mm/dd/yy"></p-datepicker>
+        </div>
+
+        <div class="form-field">
+          <label for="lastWhatsAppDate">शेवटचा WhatsApp तारीख</label>
+          <p-datepicker id="lastWhatsAppDate" formControlName="lastWhatsAppDate"
+                        [showIcon]="true" dateFormat="mm/dd/yy" [disabled]="true"></p-datepicker>
+        </div>
+
+        <div class="form-field">
+          <label for="lastContactedBy">शेवटचा संपर्ककर्ता</label>
+          <input pInputText id="lastContactedBy" formControlName="lastContactedBy"
+                 placeholder="अॅडमिन नाव" />
+        </div>
+
+        <div class="form-field full-width">
+          <label for="communicationFeedback">संपर्क फीडबॅक</label>
+          <textarea pTextarea id="communicationFeedback"
+                    formControlName="communicationFeedback"
+                    rows="3" placeholder="कॉल/मेसेज फीडबॅक"></textarea>
         </div>
       </div>
 

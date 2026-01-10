@@ -146,10 +146,6 @@ body {
     transition: all 0.2s ease;
     border-bottom: 1px solid var(--mh-police-border) !important;
 
-    &:hover {
-      background-color: #f1f5f9 !important;
-    }
-
     &:last-child {
       border-bottom: none !important;
     }

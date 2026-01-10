@@ -48,6 +48,63 @@
     </div>
   </div>
 
+  <!-- Severity Breakdown Section -->
+  <div class="severity-section">
+    <h2 class="section-title">गंभीरता विभाजन - कालावधी नुसार</h2>
+
+    <div class="severity-grid">
+      <!-- 60-day Cases Severity Breakdown -->
+      <div class="stat-card stat-card-danger">
+        <div class="stat-card-header">
+          <h3>60 दिवस केसेस</h3>
+        </div>
+        <div class="severity-breakdown">
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(60, 'critical')">
+            <span class="severity-label critical">गंभीर (55+ दिवस)</span>
+            <span class="severity-count">{{ severityStats.days60.critical }}</span>
+          </div>
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(60, 'warning')">
+            <span class="severity-label warning">चेतावणी (50-54 दिवस)</span>
+            <span class="severity-count">{{ severityStats.days60.warning }}</span>
+          </div>
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(60, 'caution')">
+            <span class="severity-label caution">सावधान (45-49 दिवस)</span>
+            <span class="severity-count">{{ severityStats.days60.caution }}</span>
+          </div>
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(60, 'overdue')">
+            <span class="severity-label overdue">मुदतबाह्य (&gt;60 दिवस)</span>
+            <span class="severity-count">{{ severityStats.days60.overdue }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 90-day Cases Severity Breakdown -->
+      <div class="stat-card stat-card-warning">
+        <div class="stat-card-header">
+          <h3>90 दिवस केसेस</h3>
+        </div>
+        <div class="severity-breakdown">
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(90, 'critical')">
+            <span class="severity-label critical">गंभीर (85+ दिवस)</span>
+            <span class="severity-count">{{ severityStats.days90.critical }}</span>
+          </div>
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(90, 'warning')">
+            <span class="severity-label warning">चेतावणी (80-84 दिवस)</span>
+            <span class="severity-count">{{ severityStats.days90.warning }}</span>
+          </div>
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(90, 'caution')">
+            <span class="severity-label caution">सावधान (75-79 दिवस)</span>
+            <span class="severity-count">{{ severityStats.days90.caution }}</span>
+          </div>
+          <div class="severity-item clickable" (click)="navigateToSeverityCases(90, 'overdue')">
+            <span class="severity-label overdue">मुदतबाह्य (&gt;90 दिवस)</span>
+            <span class="severity-count">{{ severityStats.days90.overdue }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="quick-actions-card">
     <h2 class="section-title">त्वरित कृती</h2>
     <div class="quick-actions">

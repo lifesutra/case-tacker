@@ -11,7 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { CaseService } from '../../services/case.service';
-import { Case, CaseStatus, CasePriority, CaseType } from '../../models/case.model';
+import { Case, CaseStatus, CasePriority, CaseType, CaseCallStatus } from '../../models/case.model';
 
 @Component({
   selector: 'app-case-form',
@@ -59,6 +59,15 @@ export class CaseForm implements OnInit {
     { label: '90 दिवस', value: CaseType.DAYS_90 }
   ];
 
+  callStatusOptions = [
+    { label: 'कॉल केला नाही', value: CaseCallStatus.NOT_CALLED },
+    { label: 'कॉल झाला', value: CaseCallStatus.CALL_DONE },
+    { label: 'कॉल केला - प्रतिसाद नाही', value: CaseCallStatus.CALLED_NO_RESPONSE },
+    { label: 'व्यस्त', value: CaseCallStatus.BUSY },
+    { label: 'अवैध नंबर', value: CaseCallStatus.INVALID_NUMBER },
+    { label: 'फॉलो अप आवश्यक', value: CaseCallStatus.FOLLOW_UP_REQUIRED }
+  ];
+
   constructor(
     private fb: FormBuilder,
     private caseService: CaseService,
@@ -96,8 +105,17 @@ export class CaseForm implements OnInit {
       caseType: [CaseType.DAYS_60, Validators.required],
       investigationOfficeName: [''],
       investigationOfficePhone: [''],
+      investigationPeriod: [''],
+      remarks: [''],
       nextHearingDate: [null],
-      notes: ['']
+      notes: [''],
+      // Communication tracking
+      reminderAttemptCount: [0],
+      callStatus: [CaseCallStatus.NOT_CALLED],
+      lastCallDate: [null],
+      lastWhatsAppDate: [null],
+      communicationFeedback: [''],
+      lastContactedBy: ['']
     });
   }
 

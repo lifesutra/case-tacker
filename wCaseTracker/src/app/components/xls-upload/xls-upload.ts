@@ -79,12 +79,25 @@ export class XlsUpload {
 
       for (let i = 0; i < parsedCases.length; i++) {
         const parsedCase = parsedCases[i];
-        
+
+        // Map status from Excel to CaseStatus enum
+        let caseStatus = CaseStatus.OPEN;
+        if (parsedCase.status) {
+          const statusLower = parsedCase.status.toLowerCase();
+          if (statusLower.includes('pending') || statusLower === 'प्रलंबित') {
+            caseStatus = CaseStatus.IN_PROGRESS;
+          } else if (statusLower.includes('closed') || statusLower === 'बंद') {
+            caseStatus = CaseStatus.CLOSED;
+          } else if (statusLower.includes('investigation') || statusLower.includes('तपास')) {
+            caseStatus = CaseStatus.UNDER_INVESTIGATION;
+          }
+        }
+
         const caseData: Omit<Case, 'id' | 'createdAt' | 'updatedAt'> = {
           caseNumber: parsedCase.caseNumber,
           title: parsedCase.title || parsedCase.caseNumber,
           description: parsedCase.description || '',
-          status: CaseStatus.OPEN,
+          status: caseStatus,
           priority: CasePriority.MEDIUM,
           category: '',
           location: parsedCase.location || '',
@@ -94,7 +107,9 @@ export class XlsUpload {
           caseDate: parsedCase.caseDate,
           caseType: parsedCase.caseType,
           investigationOfficeName: parsedCase.investigationOfficeName,
-          investigationOfficePhone: parsedCase.investigationOfficePhone
+          investigationOfficePhone: parsedCase.investigationOfficePhone,
+          remarks: parsedCase.remarks,
+          investigationPeriod: parsedCase.investigationPeriod
         };
 
         await this.caseService.addCase(caseData);

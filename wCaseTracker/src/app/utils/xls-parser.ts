@@ -12,6 +12,9 @@ export interface ParsedCaseData {
   complainant?: string;
   accused?: string;
   location?: string;
+  remarks?: string;
+  investigationPeriod?: number;
+  status?: string;
 }
 
 export function parseXLSFile(file: File): Promise<ParsedCaseData[]> {
@@ -28,8 +31,15 @@ export function parseXLSFile(file: File): Promise<ParsedCaseData[]> {
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as any[][];
 
-          const parsedCases = parseHierarchicalStructure(jsonData);
-          cases.push(...parsedCases);
+          // Try new simple format first
+          const simpleFormatCases = parseSimpleFormat(jsonData);
+          if (simpleFormatCases.length > 0) {
+            cases.push(...simpleFormatCases);
+          } else {
+            // Fall back to hierarchical format
+            const parsedCases = parseHierarchicalStructure(jsonData);
+            cases.push(...parsedCases);
+          }
         });
 
         resolve(cases);
@@ -41,6 +51,105 @@ export function parseXLSFile(file: File): Promise<ParsedCaseData[]> {
     reader.onerror = () => reject(new Error('File reading failed'));
     reader.readAsArrayBuffer(file);
   });
+}
+
+function parseSimpleFormat(data: any[][]): ParsedCaseData[] {
+  const cases: ParsedCaseData[] = [];
+
+  if (data.length < 2) return cases;
+
+  // Check if this is the new simple format by looking for header keywords
+  const firstRow = data[0];
+  const hasSimpleFormatHeaders = firstRow && (
+    firstRow.some((cell: any) =>
+      cell && (cell.toString().includes('गुन्हा रजिस्टर') ||
+               cell.toString().includes('Crime Register'))
+    )
+  );
+
+  if (!hasSimpleFormatHeaders) return cases;
+
+  // Find column indices from header row
+  const headers = data[0].map((h: any) => h ? h.toString().trim() : '');
+
+  const caseNumberIdx = headers.findIndex((h: string) =>
+    h.includes('गुन्हा रजिस्टर') || h.includes('Crime Register')
+  );
+  const filingDateIdx = headers.findIndex((h: string) =>
+    h.includes('दाखल दिनांक') || h.includes('Filing Date') || h.includes('दिनांक')
+  );
+  const policeStationIdx = headers.findIndex((h: string) =>
+    h.includes('पोलीस स्टेशन') || h.includes('Police Station')
+  );
+  const officerIdx = headers.findIndex((h: string) =>
+    h.includes('तपासीक अधिकारी') || h.includes('अमंलदार') || h.includes('Investigating Officer')
+  );
+  const mobileIdx = headers.findIndex((h: string) =>
+    h.includes('मोबाईल नंबर') || h.includes('Mobile Number') || h.includes('मोबाईल')
+  );
+  const remarksIdx = headers.findIndex((h: string) =>
+    h.includes('शेरा') || h.includes('Remarks')
+  );
+  const periodIdx = headers.findIndex((h: string) =>
+    h.includes('तपासाचा कालावधी') || h.includes('Investigation Period') || h.includes('कालावधी')
+  );
+  const statusIdx = headers.findIndex((h: string) =>
+    h.includes('सद्यस्थिती') || h.includes('Current Status') || h.includes('स्थिती')
+  );
+
+  // Parse data rows
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length === 0) continue;
+
+    const caseNumber = caseNumberIdx >= 0 ? getCellValue(row, caseNumberIdx) : '';
+    const filingDateStr = filingDateIdx >= 0 ? getCellValue(row, filingDateIdx) : '';
+
+    if (!caseNumber || !filingDateStr) continue;
+
+    const caseNumberStr = caseNumber.toString().trim();
+    const caseDate = parseDate(filingDateStr.toString().trim());
+
+    if (!caseNumberStr || !caseDate) continue;
+
+    const policeStation = policeStationIdx >= 0 ? getCellValue(row, policeStationIdx)?.toString().trim() : '';
+    const officer = officerIdx >= 0 ? getCellValue(row, officerIdx)?.toString().trim() : '';
+    const mobile = mobileIdx >= 0 ? getCellValue(row, mobileIdx)?.toString().trim() : '';
+    const remarks = remarksIdx >= 0 ? getCellValue(row, remarksIdx)?.toString().trim() : '';
+    const periodStr = periodIdx >= 0 ? getCellValue(row, periodIdx)?.toString().trim() : '';
+    const statusStr = statusIdx >= 0 ? getCellValue(row, statusIdx)?.toString().trim() : '';
+
+    // Parse investigation period (should be a number like 60, 90, etc.)
+    const investigationPeriod = periodStr ? parseInt(periodStr) : undefined;
+
+    // Determine case type from investigation period
+    let caseType = CaseType.DAYS_60;
+    if (investigationPeriod) {
+      if (investigationPeriod <= 45) {
+        caseType = CaseType.DAYS_45;
+      } else if (investigationPeriod <= 60) {
+        caseType = CaseType.DAYS_60;
+      } else {
+        caseType = CaseType.DAYS_90;
+      }
+    }
+
+    cases.push({
+      caseNumber: caseNumberStr,
+      caseDate: caseDate,
+      caseType: caseType,
+      investigationOfficeName: officer || undefined,
+      investigationOfficePhone: mobile || undefined,
+      location: policeStation || '',
+      remarks: remarks || undefined,
+      investigationPeriod: investigationPeriod,
+      status: statusStr || undefined,
+      title: `केस ${caseNumberStr}`,
+      description: `पोलीस स्टेशन: ${policeStation}, अधिकारी: ${officer}, कालावधी: ${investigationPeriod || 'N/A'} दिवस`
+    });
+  }
+
+  return cases;
 }
 
 function parseHierarchicalStructure(data: any[][]): ParsedCaseData[] {

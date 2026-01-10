@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import Dexie, { Table } from 'dexie';
-import { Case } from '../models/case.model';
+import { Case, CaseCallStatus } from '../models/case.model';
 import { Reminder } from '../models/reminder.model';
 import { InvestigationOffice } from '../models/investigation-office.model';
 import { Settings } from '../models/settings.model';
@@ -42,6 +42,26 @@ export class DatabaseService extends Dexie {
           caseType: 60
         };
         await tx.table('cases').update(caseItem.id, updatedCase);
+      }
+    });
+
+    this.version(4).stores({
+      cases: '++id, caseNumber, title, status, priority, filingDate, caseDate, caseType, callStatus, investigationOfficeId, nextHearingDate, createdAt',
+      reminders: '++id, caseId, title, dueDate, reminderTime, isCompleted, priority, type, createdAt',
+      investigationOffices: '++id, officeName, officerName, designation, timePeriod, caseNumber, caseDate, createdAt',
+      settings: '++id, createdAt'
+    }).upgrade(async (tx) => {
+      // Initialize new communication tracking fields with default values for existing cases
+      const cases = await tx.table('cases').toArray();
+      for (const caseItem of cases) {
+        await tx.table('cases').update(caseItem.id, {
+          reminderAttemptCount: 0,
+          callStatus: CaseCallStatus.NOT_CALLED,
+          lastCallDate: null,
+          lastWhatsAppDate: null,
+          communicationFeedback: '',
+          lastContactedBy: ''
+        });
       }
     });
   }

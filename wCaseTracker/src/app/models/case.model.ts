@@ -15,9 +15,18 @@ export interface Case {
   investigationOfficeId?: number;
   investigationOfficeName?: string;
   investigationOfficePhone?: string;
+  remarks?: string;
+  investigationPeriod?: number;
   nextHearingDate?: Date;
   closedDate?: Date;
   notes?: string;
+  // Communication tracking
+  reminderAttemptCount?: number;
+  callStatus?: CaseCallStatus;
+  lastCallDate?: Date;
+  lastWhatsAppDate?: Date;
+  communicationFeedback?: string;
+  lastContactedBy?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,4 +51,13 @@ export enum CaseType {
   DAYS_45 = 45,
   DAYS_60 = 60,
   DAYS_90 = 90
+}
+
+export enum CaseCallStatus {
+  NOT_CALLED = 'Not Called',
+  CALL_DONE = 'Call Done',
+  CALLED_NO_RESPONSE = 'Called - No Response',
+  BUSY = 'Busy',
+  INVALID_NUMBER = 'Invalid Number',
+  FOLLOW_UP_REQUIRED = 'Follow Up Required'
 }

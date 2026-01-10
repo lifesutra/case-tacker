@@ -29,6 +29,28 @@ export class Dashboard implements OnInit {
     closerToDate: 0
   };
 
+  severityStats: {
+    days60: {
+      critical: number;
+      warning: number;
+      caution: number;
+      overdue: number;
+    };
+    days90: {
+      critical: number;
+      warning: number;
+      caution: number;
+      overdue: number;
+    };
+    days45: {
+      total: number;
+    };
+  } = {
+    days60: { critical: 0, warning: 0, caution: 0, overdue: 0 },
+    days90: { critical: 0, warning: 0, caution: 0, overdue: 0 },
+    days45: { total: 0 }
+  };
+
   constructor(
     private caseService: CaseService,
     private router: Router
@@ -40,6 +62,7 @@ export class Dashboard implements OnInit {
 
   async loadDashboardData() {
     this.caseStats = await this.caseService.getCaseStatistics();
+    this.severityStats = await this.caseService.getCaseSeverityStatistics();
   }
 
   navigateToCases(filter?: string) {
@@ -48,6 +71,15 @@ export class Dashboard implements OnInit {
     } else {
       this.router.navigate(['/cases']);
     }
+  }
+
+  navigateToSeverityCases(caseType: number, severity: string) {
+    this.router.navigate(['/cases'], {
+      queryParams: {
+        caseType: caseType,
+        severity: severity
+      }
+    });
   }
 
   getCaseSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {

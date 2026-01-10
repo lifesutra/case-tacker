@@ -146,6 +146,106 @@
   }
 }
 
+.severity-section {
+  margin-bottom: 2rem;
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--mh-police-text);
+    margin-bottom: 1.5rem;
+  }
+}
+
+.severity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--mh-police-border);
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--mh-police-text);
+    margin: 0;
+  }
+}
+
+.severity-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.severity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--surface-50);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      transform: translateX(4px);
+      box-shadow: var(--mh-police-shadow-sm);
+      background: var(--surface-100);
+    }
+
+    &:active {
+      transform: translateX(2px);
+    }
+  }
+}
+
+.severity-label {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+
+  &.critical {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+  }
+
+  &.warning {
+    background: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffcc80;
+  }
+
+  &.caution {
+    background: #fffde7;
+    color: #f57f17;
+    border: 1px solid #fff59d;
+  }
+
+  &.overdue {
+    background: #b71c1c;
+    color: white;
+    border: 1px solid #7f0000;
+    font-weight: 600;
+  }
+}
+
+.severity-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--mh-police-primary);
+  min-width: 2.5rem;
+  text-align: right;
+}
+
 .quick-actions-card {
   background: white;
   border-radius: 16px;

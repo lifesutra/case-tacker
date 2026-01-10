@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
-import { Case, CaseStatus, CasePriority } from '../models/case.model';
+import { Case, CaseStatus, CasePriority, CaseType } from '../models/case.model';
 import { ReminderService } from './reminder.service';
 
 @Injectable({
@@ -165,5 +165,71 @@ export class CaseService {
       closed: cases.filter(c => c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED).length,
       closerToDate
     };
+  }
+
+  async getCaseSeverityStatistics(): Promise<{
+    days60: {
+      critical: number;    // 55+ days since filing
+      warning: number;     // 50-54 days since filing
+      caution: number;     // 45-49 days since filing
+      overdue: number;     // >60 days since filing
+    };
+    days90: {
+      critical: number;    // 85+ days remaining
+      warning: number;     // 80-84 days remaining
+      caution: number;     // 75-79 days remaining
+      overdue: number;     // >90 days since filing
+    };
+    days45: {
+      total: number;
+    };
+  }> {
+    const cases = await this.db.cases.toArray();
+
+    const activeCases = cases.filter(c =>
+      c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED
+    );
+
+    const stats = {
+      days60: { critical: 0, warning: 0, caution: 0, overdue: 0 },
+      days90: { critical: 0, warning: 0, caution: 0, overdue: 0 },
+      days45: { total: 0 }
+    };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    activeCases.forEach(c => {
+      const caseDate = new Date(c.caseDate);
+      caseDate.setHours(0, 0, 0, 0);
+      const daysSinceCase = Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (c.caseType === CaseType.DAYS_60) {
+        if (daysSinceCase > 60) {
+          stats.days60.overdue++;
+        } else if (daysSinceCase >= 55) {
+          stats.days60.critical++;
+        } else if (daysSinceCase >= 50) {
+          stats.days60.warning++;
+        } else if (daysSinceCase >= 45) {
+          stats.days60.caution++;
+        }
+      } else if (c.caseType === CaseType.DAYS_90) {
+        const daysRemaining = 90 - daysSinceCase;
+        if (daysSinceCase > 90) {
+          stats.days90.overdue++;
+        } else if (daysRemaining >= 85) {
+          stats.days90.critical++;
+        } else if (daysRemaining >= 80) {
+          stats.days90.warning++;
+        } else if (daysRemaining >= 75) {
+          stats.days90.caution++;
+        }
+      } else if (c.caseType === CaseType.DAYS_45) {
+        stats.days45.total++;
+      }
+    });
+
+    return stats;
   }
 }

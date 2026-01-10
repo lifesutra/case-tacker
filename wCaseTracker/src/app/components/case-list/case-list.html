@@ -71,36 +71,49 @@
             <th pSortableColumn="caseNumber">
               केस क्रमांक <p-sortIcon field="caseNumber"></p-sortIcon>
             </th>
-            <th pSortableColumn="title">
-              शीर्षक <p-sortIcon field="title"></p-sortIcon>
-            </th>
-            <th pSortableColumn="status">
-              स्थिती <p-sortIcon field="status"></p-sortIcon>
-            </th>
-            <th>केस प्रकार</th>
-            <th>दिवस शिल्लक</th>
             <th pSortableColumn="filingDate">
               दाखल तारीख <p-sortIcon field="filingDate"></p-sortIcon>
             </th>
+            <th pSortableColumn="location">
+              पोलीस स्टेशन <p-sortIcon field="location"></p-sortIcon>
+            </th>
+            <th>तपासीक अधिकारी</th>
+            <th>मोबाईल नंबर</th>
+            <th>शेरा</th>
+            <th>तपासाचा कालावधी</th>
+            <th pSortableColumn="status">
+              सद्यस्थिती <p-sortIcon field="status"></p-sortIcon>
+            </th>
+            <th>स्मरणपत्र प्रयत्न</th>
+            <th>कॉल स्थिती</th>
+            <th>शेवटचा संपर्क</th>
             <th class="actions-column">कृती</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-case>
-          <tr [style.background-color]="getDaysRemainingColor(case) === 'red' ? '#ffebee' : getDaysRemainingColor(case) === 'orange' ? '#fff3e0' : getDaysRemainingColor(case) === 'yellow' ? '#fffde7' : getDaysRemainingColor(case) === 'green' ? '#e8f5e9' : ''">
+          <tr [style.background-color]="getDaysRemainingColor(case) === 'red' ? '#ffebee' : getDaysRemainingColor(case) === 'darkred' ? '#b71c1c' : getDaysRemainingColor(case) === 'orange' ? '#fff3e0' : getDaysRemainingColor(case) === 'yellow' ? '#fffde7' : getDaysRemainingColor(case) === 'green' ? '#e8f5e9' : getDaysRemainingColor(case) === 'gray' ? '#f5f5f5' : ''" [style.color]="getDaysRemainingColor(case) === 'darkred' ? 'white' : 'inherit'">
             <td><strong>{{ case.caseNumber }}</strong></td>
-            <td>{{ case.title }}</td>
+            <td>{{ case.caseDate | date: 'dd-MM-yyyy' }}</td>
+            <td>{{ case.location || '-' }}</td>
+            <td>{{ case.investigationOfficeName || '-' }}</td>
+            <td>{{ case.investigationOfficePhone || '-' }}</td>
+            <td>{{ case.remarks || '-' }}</td>
+            <td>{{ case.investigationPeriod ? (case.investigationPeriod + ' दिवस') : '-' }}</td>
             <td>
               <p-tag [value]="case.status" [severity]="getCaseSeverity(case.status)"></p-tag>
             </td>
             <td>
-              <p-tag [value]="case.caseType + ' दिवस'" [severity]="'info'"></p-tag>
+              <p-tag [value]="(case.reminderAttemptCount || 0).toString()"
+                     [severity]="(case.reminderAttemptCount || 0) >= 3 ? 'danger' : 'info'"></p-tag>
             </td>
             <td>
-              <span [style.color]="getDaysRemainingColor(case)" [style.font-weight]="'bold'">
-                {{ getDaysRemaining(case) }} दिवस
-              </span>
+              <p-tag [value]="case.callStatus || 'Not Called'"
+                     [severity]="getCallStatusSeverity(case.callStatus)"></p-tag>
             </td>
-            <td>{{ case.caseDate | date: 'mediumDate' }}</td>
+            <td>
+              <small>{{ case.lastCallDate ? (case.lastCallDate | date: 'short') :
+                        (case.lastWhatsAppDate ? (case.lastWhatsAppDate | date: 'short') : '-') }}</small>
+            </td>
             <td>
               <div class="action-buttons">
                 <p-button
@@ -146,7 +159,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="6" class="empty-message">
+            <td colspan="12" class="empty-message">
               <i class="pi pi-info-circle"></i>
               <span>कोणतेही केसेस सापडले नाहीत</span>
             </td>
