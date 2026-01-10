@@ -1,6 +1,8 @@
 import { Injectable, Injector } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { SettingsService } from './settings.service';
 import { Settings } from '../models/settings.model';
+import { Case } from '../models/case.model';
 
 @Injectable({
   providedIn: 'root'
@@ -87,7 +89,7 @@ export class WhatsAppService {
       }
 
       try {
-        const caseData = await this.caseService.getCaseById(caseId).toPromise();
+        const caseData: Case | undefined = await firstValueFrom(this.caseService.getCaseById(caseId));
         if (caseData) {
           await this.caseService.updateCase(caseId, {
             reminderAttemptCount: (caseData.reminderAttemptCount || 0) + 1,
