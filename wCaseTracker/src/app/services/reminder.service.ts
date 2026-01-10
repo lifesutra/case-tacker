@@ -291,7 +291,8 @@ export class ReminderService {
               caseItem.caseNumber,
               caseDate,
               daysRemaining,
-              caseItem.caseType
+              caseItem.caseType,
+              caseItem.investigationOfficeName
             );
 
             if (sent) {

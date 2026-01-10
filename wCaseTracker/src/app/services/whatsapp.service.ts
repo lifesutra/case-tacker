@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { SettingsService } from './settings.service';
 import { Settings } from '../models/settings.model';
 
@@ -7,8 +7,12 @@ import { Settings } from '../models/settings.model';
 })
 export class WhatsAppService {
   private readonly API_ENDPOINT = '/api/whatsapp/send';
+  private caseService: any;
 
-  constructor(private settingsService: SettingsService) {}
+  constructor(
+    private settingsService: SettingsService,
+    private injector: Injector
+  ) {}
 
   async sendMessage(phoneNumber: string, message: string): Promise<boolean> {
     try {
@@ -69,20 +73,96 @@ export class WhatsAppService {
     caseNumber: string,
     caseDate: Date,
     daysRemaining: number,
-    caseType: number
+    caseType: number,
+    investigationOfficeName?: string,
+    caseId?: number
   ): Promise<boolean> {
-    const message = this.formatReminderMessage(caseNumber, caseDate, daysRemaining, caseType);
-    return await this.sendMessage(phoneNumber, message);
+    const message = this.formatReminderMessage(caseNumber, caseDate, daysRemaining, caseType, investigationOfficeName);
+    const success = await this.sendMessageViaWeb(phoneNumber, message);
+
+    if (success && caseId) {
+      if (!this.caseService) {
+        const { CaseService } = await import('./case.service');
+        this.caseService = this.injector.get(CaseService);
+      }
+
+      try {
+        const caseData = await this.caseService.getCaseById(caseId).toPromise();
+        if (caseData) {
+          await this.caseService.updateCase(caseId, {
+            reminderAttemptCount: (caseData.reminderAttemptCount || 0) + 1,
+            lastWhatsAppDate: new Date()
+          });
+        }
+      } catch (error) {
+        console.error('Error updating case communication tracking:', error);
+      }
+    }
+
+    return success;
+  }
+
+  async sendMessageViaWeb(phoneNumber: string, message: string): Promise<boolean> {
+    try {
+      const formattedPhone = this.formatPhoneNumber(phoneNumber);
+      if (!formattedPhone) {
+        console.error('Invalid phone number format');
+        return false;
+      }
+
+      const fullPhoneNumber = `91${formattedPhone}`;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://web.whatsapp.com/send?phone=${fullPhoneNumber}&text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank');
+      return true;
+    } catch (error) {
+      console.error('Error opening WhatsApp Web:', error);
+      return false;
+    }
   }
 
   private formatReminderMessage(
     caseNumber: string,
     caseDate: Date,
     daysRemaining: number,
-    caseType: number
+    caseType: number,
+    investigationOfficeName?: string
   ): string {
-    const dateStr = caseDate.toLocaleDateString('mr-IN');
-    return `स्मरणपत्र: केस क्रमांक ${caseNumber}, तारीख ${dateStr}. ${daysRemaining} दिवस शिल्लक आहेत (${caseType} दिवस केस). कृपया आवश्यक कृती करा.`;
+    const caseDateObj = new Date(caseDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    caseDateObj.setHours(0, 0, 0, 0);
+    
+    const daysSinceCase = Math.floor((today.getTime() - caseDateObj.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const dateStr = caseDateObj.toLocaleDateString('mr-IN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+
+    let officerName = 'IO/ तपासीक अधिकारी/अंमलदार';
+    if (investigationOfficeName) {
+      const parts = investigationOfficeName.split(' - ');
+      if (parts.length > 1) {
+        const officerPart = parts[parts.length - 1].trim();
+        officerName = officerPart || 'IO/ तपासीक अधिकारी/अंमलदार';
+      } else {
+        officerName = investigationOfficeName.trim() || 'IO/ तपासीक अधिकारी/अंमलदार';
+      }
+    }
+
+    const message = `प्रति - ${officerName}
+• दोषारोप पत्र दाखल करण्यास ${daysRemaining} दिवस बाकी
+• FIR No. ${caseNumber}
+         दाखल दिनांक :- ${dateStr}
+         तपास कालावधी - ${caseType} दिवस 
+        दाखल झाल्यापासुनचा कालावधी - ${daysSinceCase} दिवस
+        शिल्लक दिवस - ${daysRemaining} दिवस
+•वेळेत तपास पुर्ण करुन विहीत कालावधीत दोषारोपपत्र सादर करावे`;
+
+    return message;
   }
 
   private formatPhoneNumber(phone: string): string | null {
@@ -106,12 +186,7 @@ export class WhatsAppService {
   }
 
   isConfigured(): Promise<boolean> {
-    return this.settingsService.getSettings().then(settings => {
-      return settings.whatsappEnabled &&
-        !!settings.twilioAccountSid &&
-        !!settings.twilioAuthToken &&
-        !!settings.twilioFromNumber;
-    });
+    return Promise.resolve(true);
   }
 }
 

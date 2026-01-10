@@ -12,7 +12,7 @@ import { SelectModule } from 'primeng/select';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { CaseService } from '../../services/case.service';
 import { WhatsAppService } from '../../services/whatsapp.service';
-import { Case, CaseStatus, CasePriority, CaseType } from '../../models/case.model';
+import { Case, CaseStatus, CasePriority, CaseType, CaseCallStatus } from '../../models/case.model';
 
 @Component({
   selector: 'app-case-list',
@@ -84,6 +84,10 @@ export class CaseList implements OnInit {
         this.applyFilters();
       } else if (params['filter'] === 'alert') {
         this.applyFilters();
+      } else if (params['caseType'] && params['severity']) {
+        // Handle severity-based filtering from dashboard
+        this.selectedCaseType = parseInt(params['caseType']);
+        this.applyFilters();
       }
     });
     this.loadCases();
@@ -128,6 +132,64 @@ export class CaseList implements OnInit {
       filtered = filtered.filter(c => c.caseType === this.selectedCaseType);
     }
 
+    // Severity-based filter (from dashboard)
+    const severity = this.route.snapshot.queryParams['severity'];
+    const caseTypeParam = this.route.snapshot.queryParams['caseType'];
+    if (severity && caseTypeParam) {
+      const caseType = parseInt(caseTypeParam);
+      filtered = filtered.filter(c => {
+        if (c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED) {
+          return false;
+        }
+        if (c.caseType !== caseType) {
+          return false;
+        }
+
+        if (caseType === CaseType.DAYS_60) {
+          const caseDate = new Date(c.caseDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          caseDate.setHours(0, 0, 0, 0);
+          const daysSinceCase = Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          switch (severity) {
+            case 'critical':
+              return daysSinceCase >= 55 && daysSinceCase <= 60;
+            case 'warning':
+              return daysSinceCase >= 50 && daysSinceCase < 55;
+            case 'caution':
+              return daysSinceCase >= 45 && daysSinceCase < 50;
+            case 'overdue':
+              return daysSinceCase > 60;
+            default:
+              return true;
+          }
+        } else if (caseType === CaseType.DAYS_90) {
+          const caseDate = new Date(c.caseDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          caseDate.setHours(0, 0, 0, 0);
+          const daysSinceCase = Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+          const daysRemaining = 90 - daysSinceCase;
+          
+          switch (severity) {
+            case 'critical':
+              return daysRemaining >= 85 && daysSinceCase <= 90;
+            case 'warning':
+              return daysRemaining >= 80 && daysRemaining < 85;
+            case 'caution':
+              return daysRemaining >= 75 && daysRemaining < 80;
+            case 'overdue':
+              return daysSinceCase > 90;
+            default:
+              return true;
+          }
+        }
+
+        return true;
+      });
+    }
+
     // Alert filter (closer to date)
     if (this.route.snapshot.queryParams['filter'] === 'alert') {
       filtered = filtered.filter(c => {
@@ -164,21 +226,52 @@ export class CaseList implements OnInit {
 
   getDaysRemainingColor(caseItem: Case): string {
     const daysRemaining = this.getDaysRemaining(caseItem);
-    
+
+    // Closed/Archived cases
     if (caseItem.status === CaseStatus.CLOSED || caseItem.status === CaseStatus.ARCHIVED) {
       return 'gray';
     }
 
-    if (daysRemaining < 0) {
-      return 'red';
-    } else if (daysRemaining <= 5) {
-      return 'red';
-    } else if (daysRemaining <= 10) {
-      return 'orange';
-    } else if (daysRemaining <= 20) {
-      return 'yellow';
+    // Period-specific color coding
+    if (caseItem.caseType === CaseType.DAYS_60) {
+      // 60-day case color coding
+      if (daysRemaining >= 55) {
+        return 'red';           // Critical (55+ days)
+      } else if (daysRemaining >= 50) {
+        return 'orange';        // Warning (50-54 days)
+      } else if (daysRemaining >= 45) {
+        return 'yellow';        // Caution (45-49 days)
+      } else if (daysRemaining >= 0) {
+        return 'darkred';       // Overdue approaching (<45 days)
+      } else {
+        return 'darkred';       // Overdue (past deadline)
+      }
+    } else if (caseItem.caseType === CaseType.DAYS_90) {
+      // 90-day case color coding
+      if (daysRemaining >= 85) {
+        return 'red';           // Critical (85+ days)
+      } else if (daysRemaining >= 80) {
+        return 'orange';        // Warning (80-84 days)
+      } else if (daysRemaining >= 75) {
+        return 'yellow';        // Caution (75-79 days)
+      } else if (daysRemaining >= 0) {
+        return 'darkred';       // Overdue approaching (<75 days)
+      } else {
+        return 'darkred';       // Overdue (past deadline)
+      }
     } else {
-      return 'green';
+      // 45-day cases: keep current universal logic
+      if (daysRemaining < 0) {
+        return 'darkred';       // Overdue
+      } else if (daysRemaining <= 5) {
+        return 'red';           // Critical
+      } else if (daysRemaining <= 10) {
+        return 'orange';        // Warning
+      } else if (daysRemaining <= 20) {
+        return 'yellow';        // Caution
+      } else {
+        return 'green';         // Safe
+      }
     }
   }
 
@@ -192,36 +285,28 @@ export class CaseList implements OnInit {
       return;
     }
 
-    const isConfigured = await this.whatsappService.isConfigured();
-    if (!isConfigured) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'सूचना',
-        detail: 'कृपया सेटिंग्जमध्ये WhatsApp कॉन्फिगर करा'
-      });
-      return;
-    }
-
     const daysRemaining = this.getDaysRemaining(caseItem);
     const success = await this.whatsappService.sendCaseReminder(
       caseItem.investigationOfficePhone,
       caseItem.caseNumber,
       caseItem.caseDate,
       daysRemaining,
-      caseItem.caseType
+      caseItem.caseType,
+      caseItem.investigationOfficeName,
+      caseItem.id
     );
 
     if (success) {
       this.messageService.add({
         severity: 'success',
         summary: 'यश',
-        detail: 'WhatsApp संदेश यशस्वीरित्या पाठवला'
+        detail: 'WhatsApp Web उघडला आहे. कृपया संदेश पाठवा.'
       });
     } else {
       this.messageService.add({
         severity: 'error',
         summary: 'त्रुटी',
-        detail: 'WhatsApp संदेश पाठवताना त्रुटी आली'
+        detail: 'WhatsApp Web उघडताना त्रुटी आली'
       });
     }
   }
@@ -275,6 +360,18 @@ export class CaseList implements OnInit {
       case 'High': return 'warn';
       case 'Medium': return 'info';
       case 'Low': return 'secondary';
+      default: return 'secondary';
+    }
+  }
+
+  getCallStatusSeverity(status: string | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    if (!status) return 'secondary';
+    switch (status) {
+      case CaseCallStatus.CALL_DONE: return 'success';
+      case CaseCallStatus.CALLED_NO_RESPONSE: return 'warn';
+      case CaseCallStatus.INVALID_NUMBER: return 'danger';
+      case CaseCallStatus.FOLLOW_UP_REQUIRED: return 'warn';
+      case CaseCallStatus.BUSY: return 'info';
       default: return 'secondary';
     }
   }
