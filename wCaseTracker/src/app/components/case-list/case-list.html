@@ -91,7 +91,7 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-case>
-          <tr [style.background-color]="getDaysRemainingColor(case) === 'red' ? '#ffebee' : getDaysRemainingColor(case) === 'darkred' ? '#b71c1c' : getDaysRemainingColor(case) === 'orange' ? '#fff3e0' : getDaysRemainingColor(case) === 'yellow' ? '#fffde7' : getDaysRemainingColor(case) === 'green' ? '#e8f5e9' : getDaysRemainingColor(case) === 'gray' ? '#f5f5f5' : ''" [style.color]="getDaysRemainingColor(case) === 'darkred' ? 'white' : 'inherit'">
+          <tr>
             <td><strong>{{ case.caseNumber }}</strong></td>
             <td>{{ case.caseDate | date: 'dd-MM-yyyy' }}</td>
             <td>{{ case.location || '-' }}</td>

@@ -82,11 +82,27 @@
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+  ::ng-deep .p-datatable {
+    .p-datatable-thead > tr > th,
+    .p-datatable-tbody > tr > td {
+      white-space: nowrap;
+    }
+
+    .p-datatable-tbody > tr > td {
+      p-tag,
+      small,
+      strong {
+        white-space: nowrap;
+      }
+    }
+  }
 }
 
 .actions-column {
-  width: 150px;
+  width: 200px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .action-buttons {
@@ -94,10 +110,11 @@
   gap: 0.5rem;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 
   .p-button {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
 
     &:hover {
       transform: scale(1.1);
@@ -171,12 +188,12 @@
   }
 
   .action-buttons {
-    flex-direction: column;
+    flex-wrap: nowrap;
     gap: 0.25rem;
 
     .p-button {
-      width: 100%;
-      justify-content: center;
+      flex-shrink: 0;
+      min-width: auto;
     }
   }
 }
