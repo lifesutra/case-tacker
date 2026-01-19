@@ -140,6 +140,7 @@ body {
     font-size: 0.875rem !important;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap !important;
   }
 
   .p-datatable-tbody > tr {
@@ -153,6 +154,13 @@ body {
     td {
       padding: 1rem 1.25rem !important;
       font-size: 0.9375rem !important;
+      white-space: nowrap !important;
+
+      p-tag,
+      small,
+      strong {
+        white-space: nowrap !important;
+      }
     }
   }
 
