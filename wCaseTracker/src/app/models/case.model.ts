@@ -61,3 +61,39 @@ export enum CaseCallStatus {
   INVALID_NUMBER = 'Invalid Number',
   FOLLOW_UP_REQUIRED = 'Follow Up Required'
 }
+
+// Police Station Dashboard Interfaces
+export interface SeverityStats {
+  days60: {
+    critical: number;
+    warning: number;
+    caution: number;
+    overdue: number;
+  };
+  days90: {
+    critical: number;
+    warning: number;
+    caution: number;
+    overdue: number;
+  };
+  days45: {
+    total: number;
+  };
+}
+
+export interface PoliceStationStats {
+  stationName: string;
+  totalCases: number;
+  pendingCases: number;
+  closedCases: number;
+  severityStats: SeverityStats;
+}
+
+export interface DivisionStats {
+  divisionName: string;
+  totalCases: number;
+  pendingCases: number;
+  closedCases: number;
+  severityStats: SeverityStats;
+  stations: PoliceStationStats[];
+}

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { Dashboard } from './components/dashboard/dashboard';
+import { StationDashboard } from './components/station-dashboard/station-dashboard';
 import { CaseList } from './components/case-list/case-list';
 import { CaseForm } from './components/case-form/case-form';
 import { ReminderList } from './components/reminder-list/reminder-list';
@@ -11,7 +12,8 @@ import { authGuard } from './guards/auth.guard';
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'login', component: Login },
-  { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+  // { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+  { path: 'station-dashboard', component: StationDashboard, canActivate: [authGuard] },
   { path: 'cases', component: CaseList, canActivate: [authGuard] },
   { path: 'cases/new', component: CaseForm, canActivate: [authGuard] },
   { path: 'cases/edit/:id', component: CaseForm, canActivate: [authGuard] },

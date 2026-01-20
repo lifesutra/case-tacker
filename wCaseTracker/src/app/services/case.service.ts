@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
-import { Case, CaseStatus, CasePriority, CaseType } from '../models/case.model';
+import { Case, CaseStatus, CasePriority, CaseType, SeverityStats, PoliceStationStats, DivisionStats } from '../models/case.model';
 import { ReminderService } from './reminder.service';
 
 @Injectable({
@@ -231,5 +231,105 @@ export class CaseService {
     });
 
     return stats;
+  }
+
+  // Helper method to calculate severity stats for a given array of cases
+  private calculateSeverityStatsForCases(cases: Case[]): SeverityStats {
+    const activeCases = cases.filter(c =>
+      c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED
+    );
+
+    const stats: SeverityStats = {
+      days60: { critical: 0, warning: 0, caution: 0, overdue: 0 },
+      days90: { critical: 0, warning: 0, caution: 0, overdue: 0 },
+      days45: { total: 0 }
+    };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    activeCases.forEach(c => {
+      const caseDate = new Date(c.caseDate);
+      caseDate.setHours(0, 0, 0, 0);
+      const daysSinceCase = Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (c.caseType === CaseType.DAYS_60) {
+        if (daysSinceCase > 60) {
+          stats.days60.overdue++;
+        } else if (daysSinceCase >= 55) {
+          stats.days60.critical++;
+        } else if (daysSinceCase >= 50) {
+          stats.days60.warning++;
+        } else if (daysSinceCase >= 45) {
+          stats.days60.caution++;
+        }
+      } else if (c.caseType === CaseType.DAYS_90) {
+        const daysRemaining = 90 - daysSinceCase;
+        if (daysSinceCase > 90) {
+          stats.days90.overdue++;
+        } else if (daysRemaining >= 85) {
+          stats.days90.critical++;
+        } else if (daysRemaining >= 80) {
+          stats.days90.warning++;
+        } else if (daysRemaining >= 75) {
+          stats.days90.caution++;
+        }
+      } else if (c.caseType === CaseType.DAYS_45) {
+        stats.days45.total++;
+      }
+    });
+
+    return stats;
+  }
+
+  // Get unique police stations from location field
+  async getUniquePoliceStations(): Promise<string[]> {
+    const cases = await this.db.cases.toArray();
+    const stations = [...new Set(cases.map(c => c.location).filter(Boolean))];
+    return stations.sort();
+  }
+
+  // Get complete grouped statistics for all stations under CITY DIVISION
+  async getDivisionStatistics(): Promise<DivisionStats> {
+    const cases = await this.db.cases.toArray();
+    const stations = await this.getUniquePoliceStations();
+
+    const stationStats: PoliceStationStats[] = [];
+
+    for (const station of stations) {
+      const stationCases = cases.filter(c => c.location === station);
+      const severityStats = this.calculateSeverityStatsForCases(stationCases);
+
+      stationStats.push({
+        stationName: station,
+        totalCases: stationCases.length,
+        pendingCases: stationCases.filter(c =>
+          c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED
+        ).length,
+        closedCases: stationCases.filter(c =>
+          c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED
+        ).length,
+        severityStats
+      });
+    }
+
+    // Sort stations by pending cases (descending) for better visibility
+    stationStats.sort((a, b) => b.pendingCases - a.pendingCases);
+
+    // Calculate division totals (aggregate of all stations)
+    const divisionSeverityStats = this.calculateSeverityStatsForCases(cases);
+
+    return {
+      divisionName: 'सिटी विभाग',
+      totalCases: cases.length,
+      pendingCases: cases.filter(c =>
+        c.status !== CaseStatus.CLOSED && c.status !== CaseStatus.ARCHIVED
+      ).length,
+      closedCases: cases.filter(c =>
+        c.status === CaseStatus.CLOSED || c.status === CaseStatus.ARCHIVED
+      ).length,
+      severityStats: divisionSeverityStats,
+      stations: stationStats
+    };
   }
 }

@@ -1,0 +1,301 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<div class="station-dashboard-container">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>पोलीस स्टेशन डॅशबोर्ड</h1>
+      <p>स्टेशन निहाय केस व्यवस्थापन</p>
+    </div>
+    <div class="header-actions">
+      <button pButton label="डेटाबेस क्लीअर करा" icon="pi pi-trash"
+              class="p-button-danger p-button-sm" (click)="clearDatabaseAndRefresh()"></button>
+      <button pButton label="रिफ्रेश" icon="pi pi-refresh"
+              class="p-button-outlined p-button-sm" (click)="refreshData()"></button>
+      <!-- <button pButton label="सर्व उघडा" icon="pi pi-angle-double-down"
+              class="p-button-outlined p-button-sm" (click)="expandAll()"
+              *ngIf="divisionStats && divisionStats.stations.length > 0"></button>
+      <button pButton label="सर्व बंद करा" icon="pi pi-angle-double-up"
+              class="p-button-outlined p-button-sm" (click)="collapseAll()"
+              *ngIf="divisionStats && divisionStats.stations.length > 0"></button> -->
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>डेटा लोड होत आहे...</span>
+  </div>
+
+  <!-- Division Card (Parent Level) -->
+  <div *ngIf="!loading && divisionStats" class="division-section">
+    <div class="division-card">
+      <div class="division-header-clickable" (click)="toggleDivision()">
+        <div class="division-header">
+          <div class="division-icon">
+            <i class="pi pi-building"></i>
+          </div>
+          <div class="division-info">
+            <h2>{{ divisionStats.divisionName }}</h2>
+            <span class="division-subtitle">CITY DIVISION</span>
+          </div>
+          <div class="division-stats-summary">
+          
+          
+            <div class="summary-item">
+              <span class="summary-value">{{ divisionStats.totalCases }}</span>
+              <span class="summary-label">एकूण केसेस</span>
+            </div>
+            <!-- <div class="summary-item">
+              <span class="summary-value pending">{{ divisionStats.pendingCases }}</span>
+              <span class="summary-label">प्रलंबित</span>
+            </div> -->
+            <div class="summary-item">
+              <span class="summary-value">{{ divisionStats.stations.length }}</span>
+              <span class="summary-label">पोलीस स्टेशन</span>
+            </div>
+            <div class="summary-item overdue-summary" *ngIf="getOverdueCount(divisionStats.severityStats) > 0">
+              <span class="summary-value overdue">{{ getOverdueCount(divisionStats.severityStats) }}</span>
+              <span class="summary-label">मुदतबाह्य</span>
+            </div>
+            <div class="summary-item critical-summary" *ngIf="getCriticalCount(divisionStats.severityStats) > 0">
+              <span class="summary-value critical">{{ getCriticalCount(divisionStats.severityStats) }}</span>
+              <span class="summary-label">गंभीर</span>
+            </div>
+          </div>
+          <div class="expand-icon division-expand">
+            <i [class]="divisionExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Division-level Severity Details (Expandable) -->
+      <div class="division-details" *ngIf="divisionExpanded">
+        <div class="severity-section">
+          <h5 class="severity-title">गंभीरता विभाजन - कालावधी नुसार (संपूर्ण विभाग)</h5>
+
+          <div class="severity-grid">
+            <!-- 60-day Cases -->
+            <div class="severity-card severity-card-danger">
+              <div class="severity-card-header">
+                <h6>60 दिवस केसेस</h6>
+              </div>
+              <div class="severity-breakdown">
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(60, 'critical'); $event.stopPropagation()">
+                  <span class="severity-label critical">गंभीर (55+ दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days60.critical }}</span>
+                </div>
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(60, 'warning'); $event.stopPropagation()">
+                  <span class="severity-label warning">चेतावणी (50-54 दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days60.warning }}</span>
+                </div>
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(60, 'caution'); $event.stopPropagation()">
+                  <span class="severity-label caution">सावधान (45-49 दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days60.caution }}</span>
+                </div>
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(60, 'overdue'); $event.stopPropagation()">
+                  <span class="severity-label overdue">मुदतबाह्य (>60 दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days60.overdue }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 90-day Cases -->
+            <div class="severity-card severity-card-warning">
+              <div class="severity-card-header">
+                <h6>90 दिवस केसेस</h6>
+              </div>
+              <div class="severity-breakdown">
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(90, 'overdue'); $event.stopPropagation()">
+                  <span class="severity-label overdue">मुदतबाह्य (>90 दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days90.overdue }}</span>
+                </div>
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(90, 'critical'); $event.stopPropagation()">
+                  <span class="severity-label critical">गंभीर (85+ दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days90.critical }}</span>
+                </div>
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(90, 'warning'); $event.stopPropagation()">
+                  <span class="severity-label warning">चेतावणी (80-84 दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days90.warning }}</span>
+                </div>
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(90, 'caution'); $event.stopPropagation()">
+                  <span class="severity-label caution">सावधान (75-79 दिवस)</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days90.caution }}</span>
+                </div>
+                
+              </div>
+            </div>
+
+            <!-- 45-day Cases (Simple count) -->
+            <div class="severity-card severity-card-info">
+              <div class="severity-card-header">
+                <h6>45 दिवस केसेस</h6>
+              </div>
+              <div class="severity-breakdown">
+                <div class="severity-item clickable"
+                     (click)="navigateToDivisionCases(45); $event.stopPropagation()">
+                  <span class="severity-label info">एकूण</span>
+                  <span class="severity-count">{{ divisionStats.severityStats.days45.total }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action for Division -->
+        <div class="station-actions">
+          <button pButton label="सर्व केसेस पहा" icon="pi pi-list"
+                  class="p-button-outlined p-button-sm"
+                  (click)="navigateToDivisionCases(); $event.stopPropagation()">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Police Stations List (Children) -->
+    <div class="stations-list">
+      <h3 class="section-title">
+        <i class="pi pi-map-marker"></i>
+        पोलीस स्टेशन ({{ divisionStats.stations.length }})
+      </h3>
+
+      <div *ngFor="let station of divisionStats.stations" class="station-card">
+        <!-- Station Header (Clickable to expand/collapse) -->
+        <div class="station-header" (click)="toggleStation(station.stationName)">
+          <div class="station-icon">
+            <i class="pi pi-shield"></i>
+          </div>
+          <div class="station-info">
+            <h4>{{ station.stationName }}</h4>
+            <span class="station-subtitle">पोलीस स्टेशन</span>
+          </div>
+          <div class="station-quick-stats">
+            <span class="quick-stat">
+              <i class="pi pi-folder"></i> {{ station.totalCases }}
+            </span>
+            <span class="quick-stat overdue" *ngIf="getOverdueCount(station.severityStats) > 0">
+              <i class="pi pi-clock"></i> {{ getOverdueCount(station.severityStats) }}
+            </span>
+            <span class="quick-stat critical" *ngIf="getCriticalCount(station.severityStats) > 0">
+              <i class="pi pi-exclamation-triangle"></i> {{ getCriticalCount(station.severityStats) }}
+            </span>
+          </div>
+          <div class="expand-icon">
+            <i [class]="isStationExpanded(station.stationName) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+          </div>
+        </div>
+
+        <!-- Station Severity Details (Expandable) -->
+        <div class="station-details" *ngIf="isStationExpanded(station.stationName)">
+          <div class="severity-section">
+            <h5 class="severity-title">गंभीरता विभाजन - कालावधी नुसार</h5>
+
+            <div class="severity-grid">
+              <!-- 60-day Cases -->
+              <div class="severity-card severity-card-danger">
+                <div class="severity-card-header">
+                  <h6>60 दिवस केसेस</h6>
+                </div>
+                <div class="severity-breakdown">
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 60, 'overdue'); $event.stopPropagation()">
+                    <span class="severity-label overdue">मुदतबाह्य (>60 दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days60.overdue }}</span>
+                  </div>
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 60, 'critical'); $event.stopPropagation()">
+                    <span class="severity-label critical">गंभीर (55+ दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days60.critical }}</span>
+                  </div>
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 60, 'warning'); $event.stopPropagation()">
+                    <span class="severity-label warning">चेतावणी (50-54 दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days60.warning }}</span>
+                  </div>
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 60, 'caution'); $event.stopPropagation()">
+                    <span class="severity-label caution">सावधान (45-49 दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days60.caution }}</span>
+                  </div>
+                  
+                </div>
+              </div>
+
+              <!-- 90-day Cases -->
+              <div class="severity-card severity-card-warning">
+                <div class="severity-card-header">
+                  <h6>90 दिवस केसेस</h6>
+                </div>
+                <div class="severity-breakdown">
+                  <div class="severity-item clickable"
+                  (click)="navigateToStationCases(station.stationName, 90, 'overdue'); $event.stopPropagation()">
+               <span class="severity-label overdue">मुदतबाह्य (>90 दिवस)</span>
+               <span class="severity-count">{{ station.severityStats.days90.overdue }}</span>
+             </div>
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 90, 'critical'); $event.stopPropagation()">
+                    <span class="severity-label critical">गंभीर (85+ दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days90.critical }}</span>
+                  </div>
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 90, 'warning'); $event.stopPropagation()">
+                    <span class="severity-label warning">चेतावणी (80-84 दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days90.warning }}</span>
+                  </div>
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 90, 'caution'); $event.stopPropagation()">
+                    <span class="severity-label caution">सावधान (75-79 दिवस)</span>
+                    <span class="severity-count">{{ station.severityStats.days90.caution }}</span>
+                  </div>
+               
+                </div>
+              </div>
+
+              <!-- 45-day Cases (Simple count) -->
+              <div class="severity-card severity-card-info">
+                <div class="severity-card-header">
+                  <h6>45 दिवस केसेस</h6>
+                </div>
+                <div class="severity-breakdown">
+                  <div class="severity-item clickable"
+                       (click)="navigateToStationCases(station.stationName, 45); $event.stopPropagation()">
+                    <span class="severity-label info">एकूण</span>
+                    <span class="severity-count">{{ station.severityStats.days45.total }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action for Station -->
+          <div class="station-actions">
+            <button pButton label="सर्व केसेस पहा" icon="pi pi-list"
+                    class="p-button-outlined p-button-sm"
+                    (click)="navigateToStationCases(station.stationName); $event.stopPropagation()">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && (!divisionStats || divisionStats.stations.length === 0)" class="empty-state">
+    <i class="pi pi-inbox"></i>
+    <h3>कोणतेही पोलीस स्टेशन सापडले नाही</h3>
+    <p>केसेस अपलोड करण्यासाठी Excel फाइल वापरा</p>
+    <a routerLink="/xls-upload" class="action-button action-primary">
+      <i class="pi pi-upload"></i>
+      Excel फाइल अपलोड करा
+    </a>
+  </div>
+</div>

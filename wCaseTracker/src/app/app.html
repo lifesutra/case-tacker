@@ -18,11 +18,16 @@
     <aside class="sidebar" [class.sidebar-open]="sidebarVisible || !isMobile">
       <div class="sidebar-content">
         <nav class="sidebar-nav">
-          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+          <!-- <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
             <i class="pi pi-home"></i>
             <span>डॅशबोर्ड</span>
+          </a> -->
+
+          <a routerLink="/station-dashboard" routerLinkActive="active" class="nav-item" (click)="closeSidebar()">
+            <i class="pi pi-building"></i>
+            <span>स्टेशन डॅशबोर्ड</span>
           </a>
-          
+
           <div class="nav-section">
             <div class="nav-section-header">
               <i class="pi pi-briefcase"></i>
