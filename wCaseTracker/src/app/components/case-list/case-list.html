@@ -81,6 +81,7 @@
             <th>मोबाईल नंबर</th>
             <th>शेरा</th>
             <th>तपासाचा कालावधी</th>
+            <th>दाखल तारीख ते तपास कालावधी फरक</th>
             <th pSortableColumn="status">
               सद्यस्थिती <p-sortIcon field="status"></p-sortIcon>
             </th>
@@ -99,6 +100,12 @@
             <td>{{ case.investigationOfficePhone || '-' }}</td>
             <td>{{ case.remarks || '-' }}</td>
             <td>{{ case.investigationPeriod ? (case.investigationPeriod + ' दिवस') : '-' }}</td>
+            <td>
+              <ng-container *ngIf="getCaseDateToInvestigationPeriodDifference(case) !== null; else noDifference">
+                {{ getCaseDateToInvestigationPeriodDifference(case)! > 0 ? '+' : '' }}{{ getCaseDateToInvestigationPeriodDifference(case) }} दिवस
+              </ng-container>
+              <ng-template #noDifference>-</ng-template>
+            </td>
             <td>
               <p-tag [value]="case.status" [severity]="getCaseSeverity(case.status)"></p-tag>
             </td>
@@ -159,7 +166,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="12" class="empty-message">
+            <td colspan="13" class="empty-message">
               <i class="pi pi-info-circle"></i>
               <span>कोणतेही केसेस सापडले नाहीत</span>
             </td>

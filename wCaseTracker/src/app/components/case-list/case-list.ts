@@ -39,6 +39,7 @@ export class CaseList implements OnInit {
   selectedStatus: string | null = null;
   selectedPriority: string | null = null;
   selectedCaseType: number | null = null;
+  selectedStation: string | null = null;
 
   statusOptions = [
     { label: 'सर्व', value: null },
@@ -76,6 +77,13 @@ export class CaseList implements OnInit {
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
+      // Handle station filter from station dashboard
+      if (params['station']) {
+        this.selectedStation = params['station'];
+      } else {
+        this.selectedStation = null;
+      }
+
       if (params['filter'] === 'pending') {
         this.selectedStatus = null;
         this.applyFilters();
@@ -87,6 +95,12 @@ export class CaseList implements OnInit {
       } else if (params['caseType'] && params['severity']) {
         // Handle severity-based filtering from dashboard
         this.selectedCaseType = parseInt(params['caseType']);
+        this.applyFilters();
+      } else if (params['station']) {
+        // Handle station filter
+        if (params['caseType']) {
+          this.selectedCaseType = parseInt(params['caseType']);
+        }
         this.applyFilters();
       }
     });
@@ -103,6 +117,11 @@ export class CaseList implements OnInit {
   applyFilters() {
     let filtered = [...this.cases];
 
+    // Station filter (from station dashboard)
+    if (this.selectedStation) {
+      filtered = filtered.filter(c => c.location === this.selectedStation);
+    }
+
     // Search filter
     if (this.searchTerm) {
       const search = this.searchTerm.toLowerCase();
@@ -111,7 +130,8 @@ export class CaseList implements OnInit {
         c.title.toLowerCase().includes(search) ||
         c.description?.toLowerCase().includes(search) ||
         c.complainant?.toLowerCase().includes(search) ||
-        c.accused?.toLowerCase().includes(search)
+        c.accused?.toLowerCase().includes(search) ||
+        c.location?.toLowerCase().includes(search)
       );
     }
 
@@ -222,6 +242,19 @@ export class CaseList implements OnInit {
 
   getDaysRemaining(caseItem: Case): number {
     return this.caseService.getDaysRemaining(caseItem);
+  }
+
+  getCaseDateToInvestigationPeriodDifference(caseItem: Case): number | null {
+    if (!caseItem.investigationPeriod) {
+      return null;
+    }
+    const caseDate = new Date(caseItem.caseDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    caseDate.setHours(0, 0, 0, 0);
+    const daysPassed = Math.floor((today.getTime() - caseDate.getTime()) / (1000 * 60 * 60 * 24));
+    const difference = daysPassed - caseItem.investigationPeriod;
+    return difference;
   }
 
   getDaysRemainingColor(caseItem: Case): string {
